@@ -1,0 +1,2253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>LawPrep Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --ink:    #0F0F1A;
+    --ink2:   #3A3A52;
+    --muted:  #7C7C99;
+    --border: #E4E4EF;
+    --bg:     #F7F7FB;
+    --white:  #FFFFFF;
+    --en:     #4F6EF7;
+    --lr:     #F97316;
+    --le:     #10B981;
+    --qu:     #EF4444;
+    --gk:     #8B5CF6;
+    --fixed:  #64748B;
+    --gold:   #F59E0B;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+  /* NAV */
+  nav {
+    background: var(--ink);
+    padding: 0 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 54px; position: sticky; top: 0; z-index: 100;
+  }
+  .nav-brand { display: flex; align-items: center; gap: 9px; }
+  .nav-logo {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--en), var(--gk));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+  }
+  .nav-title { font-family: 'Syne', sans-serif; color: #fff; font-size: 15px; letter-spacing: .03em; }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab {
+    padding: 6px 13px; border-radius: 7px; border: none;
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+    cursor: pointer; color: rgba(255,255,255,.6); background: transparent; transition: all .15s;
+  }
+  .nav-tab.active { background: var(--en); color: #fff; }
+
+  /* SCREENS */
+  .screen { display: none; max-width: 720px; margin: 0 auto; padding: 20px 16px 40px; }
+  .screen.active { display: block; }
+
+  /* TYPOGRAPHY */
+  .page-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 3px; }
+  .page-sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+
+  /* CARDS */
+  .card {
+    background: var(--white); border-radius: var(--radius);
+    border: 1px solid var(--border); padding: 14px 16px; margin-bottom: 10px;
+  }
+  .card-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--muted); margin-bottom: 8px;
+  }
+
+  /* SUBJECT PILL */
+  .subj-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .06em; padding: 2px 8px; border-radius: 20px;
+  }
+  .type-pill {
+    font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px;
+  }
+  .priority-high { background: #FEF3C7; color: #D97706; font-size:10px; font-weight:600; padding:2px 8px; border-radius:20px; }
+  .subj-toggle {
+    padding:8px 14px; border-radius:20px; border:1.5px solid #CBD5E1;
+    background:#F7F7FB; color:#64748B; font-family:'Inter',sans-serif;
+    font-size:13px; font-weight:600; cursor:pointer; transition:all .15s;
+    touch-action:manipulation; -webkit-tap-highlight-color:rgba(79,110,247,0.15);
+    user-select:none; -webkit-user-select:none;
+  }
+  .subj-toggle.active { background:#4F6EF7; color:#fff; border-color:#4F6EF7; }
+  .mag-part-btn { padding:6px 11px; border-radius:8px; border:1.5px solid #CBD5E1; background:#F7F7FB; color:#64748B; font-size:12px; font-weight:600; cursor:pointer; margin:3px 2px; touch-action:manipulation; }
+  .mag-part-btn.done { background:#4F6EF7; color:#fff; border-color:#4F6EF7; }
+
+  /* TASK BLOCK */
+  .task-block {
+    background: var(--white); border-radius: var(--radius);
+    border: 1px solid var(--border); padding: 13px 15px; margin-bottom: 9px;
+    border-left: 3px solid var(--border); transition: opacity .2s;
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .task-block.done { opacity: .45; }
+  .task-block.done .task-title { text-decoration: line-through; }
+
+  /* CHECKBOX */
+  .task-check {
+    width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--border);
+    flex-shrink: 0; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; margin-top: 2px; transition: all .15s;
+  }
+  .task-check.checked { border-color: transparent; }
+  .task-check.checked::after { content: '✓'; color: #fff; font-size: 11px; font-weight: 700; }
+
+  .task-body { flex: 1; }
+  .task-header { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+  .task-title { font-size: 14px; font-weight: 600; }
+  .task-notes { font-size: 12px; color: var(--muted); }
+  .task-dur { font-size: 13px; font-weight: 700; color: var(--ink); margin-left: auto; flex-shrink: 0; }
+
+  /* PROGRESS BAR */
+  .prog-bar-wrap { background: #EBEBF5; border-radius: 999px; height: 6px; }
+  .prog-bar-fill { height: 100%; border-radius: 999px; transition: width .4s; }
+
+  /* FORM */
+  label.field-label { display: block; font-size: 12px; font-weight: 600; color: var(--ink2); margin-bottom: 5px; }
+  input[type=text], input[type=number], textarea, select {
+    width: 100%; padding: 9px 12px; border-radius: 8px;
+    border: 1.5px solid var(--border); font-family: 'Inter', sans-serif;
+    font-size: 13px; color: var(--ink); background: var(--white); outline: none;
+    transition: border-color .15s;
+  }
+  input[type=text]:focus, input[type=number]:focus, textarea:focus, select:focus { border-color: var(--en); }
+  textarea { resize: vertical; }
+  .field { margin-bottom: 14px; }
+
+  /* BUTTONS */
+  .btn-primary {
+    width: 100%; background: linear-gradient(135deg, var(--en), var(--gk));
+    color: #fff; border: none; border-radius: 10px; padding: 14px;
+    font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: opacity .15s;
+  }
+  .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+  .btn-ghost {
+    background: var(--bg); color: var(--ink2); border: 1.5px solid var(--border);
+    border-radius: 8px; padding: 7px 14px; font-family: 'Inter', sans-serif;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+  .btn-sm {
+    border: none; border-radius: 6px; padding: 5px 11px;
+    font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; cursor: pointer;
+  }
+  .btn-danger { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; border-radius:8px; padding:9px; font-size:13px; font-weight:600; cursor:pointer; width:100%; margin-top:8px; font-family:'Inter',sans-serif; }
+
+  /* MOTIVATION BANNER */
+  .motiv-banner {
+    background: var(--ink); border-radius: var(--radius);
+    padding: 12px 16px; margin-bottom: 14px;
+    border-left: 3px solid var(--en);
+  }
+  .motiv-banner p { color: #A5B4FC; font-size: 13px; font-style: italic; }
+
+  /* SUMMARY BANNER */
+  .summary-banner { background: #F0FDF4; border-radius: var(--radius); padding: 12px 16px; border: 1px solid #BBF7D0; margin-top: 6px; }
+  .summary-banner p { font-size: 13px; color: #166534; }
+
+  /* ROLLOVER BANNER */
+  .rollover-banner { background: #FFF7ED; border-radius: var(--radius); padding: 12px 16px; border: 1px solid #FED7AA; margin-bottom: 10px; }
+  .rollover-banner .rl { font-weight: 700; font-size: 12px; color: #C2410C; text-transform: uppercase; letter-spacing:.08em; margin-bottom:6px; }
+  .rollover-banner p { font-size: 13px; color: #92400E; margin: 2px 0; }
+
+  /* EMPTY STATE */
+  .empty { text-align: center; padding: 60px 20px; }
+  .empty-icon { font-size: 48px; margin-bottom: 16px; }
+  .empty h2 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+  .empty p { color: var(--muted); line-height: 1.6; margin-bottom: 22px; font-size: 13px; }
+
+  /* DAY HEADER */
+  .day-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+  .day-meta p { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+  /* PROGRESS SUBJECT CARD */
+  .prog-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 14px 16px; margin-bottom: 10px; }
+  .prog-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .prog-card-title { font-weight: 700; font-size: 14px; }
+  .prog-card-stat { font-size: 12px; color: var(--muted); }
+  .prog-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+
+  /* NEW TOPIC LOG */
+  .topic-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); }
+  .topic-item:last-child { border-bottom: none; }
+  .topic-item span { font-size: 13px; }
+  .topic-remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 0 4px; }
+  .topic-subj-tag { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; margin-right: 6px; }
+
+  /* TOASTER */
+  #toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--ink); color: #fff; padding: 10px 20px; border-radius: 999px;
+    font-size: 13px; font-weight: 600; z-index: 9999; transition: transform .3s;
+    white-space: nowrap;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* LOADING OVERLAY */
+  #loading-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(15,15,26,.7);
+    z-index: 9998; align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+  }
+  #loading-overlay.show { display: flex; }
+  .spinner {
+    width: 40px; height: 40px; border: 3px solid rgba(255,255,255,.2);
+    border-top-color: var(--en); border-radius: 50%; animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading-overlay p { color: #fff; font-size: 14px; font-weight: 600; }
+
+  /* SECTION DIVIDER */
+  .section-divider { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 16px 0 8px; }
+
+  /* CHECKBOX ROW */
+  .check-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .check-row input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--en); }
+  .check-row label { font-size: 13px; font-weight: 600; cursor: pointer; }
+
+  /* OVERALL BAR */
+  .overall-wrap { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 14px 16px; margin-bottom: 16px; }
+  .overall-top { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .overall-label { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800; }
+  .overall-pct { font-size: 15px; font-weight: 700; color: var(--en); }
+
+  @media(max-width:480px) {
+    .nav-title { display: none; }
+    .nav-tab { padding: 5px 9px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- MAGAZINE SETUP MODAL -->
+<div id="mag-modal" style="display:none;position:fixed;inset:0;background:rgba(15,15,26,.75);z-index:9997;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:22px 20px;max-width:340px;width:90%;margin:auto;">
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:6px;">Magazine Arrival Setup</div>
+    <p style="font-size:13px;color:#7C7C99;margin-bottom:16px;line-height:1.5;">Set the date when your 11 magazines were already piled up. The app will automatically add 1 more every 15 days from that date.</p>
+    <label style="display:block;font-size:12px;font-weight:600;color:#3A3A52;margin-bottom:5px;">Date I had 11 magazines piled up</label>
+    <input type="date" id="mag-start-date" style="width:100%;padding:9px 12px;border-radius:8px;border:1.5px solid #E4E4EF;font-family:'Inter',sans-serif;font-size:13px;margin-bottom:14px;"/>
+    <label style="display:block;font-size:12px;font-weight:600;color:#3A3A52;margin-bottom:5px;">How many were piled up on that date?</label>
+    <input type="number" id="mag-start-count" min="1" max="50" value="11" style="width:100%;padding:9px 12px;border-radius:8px;border:1.5px solid #E4E4EF;font-family:'Inter',sans-serif;font-size:13px;margin-bottom:18px;"/>
+    <div id="mag-preview" style="background:#F0FDF4;border-radius:8px;padding:10px 12px;border:1px solid #BBF7D0;font-size:13px;color:#166534;margin-bottom:16px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="saveMagazineSetup()" style="flex:1;background:linear-gradient(135deg,#4F6EF7,#8B5CF6);color:#fff;border:none;border-radius:9px;padding:12px;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">Save</button>
+      <button onclick="document.getElementById('mag-modal').style.display='none'" style="flex:1;background:#F7F7FB;color:#3A3A52;border:1.5px solid #E4E4EF;border-radius:9px;padding:12px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- WEEKLY TEST SETUP MODAL -->
+<div id="wt-modal" style="display:none;position:fixed;inset:0;background:rgba(15,15,26,.75);z-index:9997;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:22px 20px;max-width:340px;width:90%;margin:auto;">
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:6px;">Weekly Test Schedule</div>
+    <p style="font-size:13px;color:#7C7C99;margin-bottom:16px;line-height:1.5;">Set the date when 13 tests were already pending. The app will add 1 more every 7 days from that date.</p>
+    <label style="display:block;font-size:12px;font-weight:600;color:#3A3A52;margin-bottom:5px;">Date I had 13 tests pending</label>
+    <input type="date" id="wt-start-date" style="width:100%;padding:9px 12px;border-radius:8px;border:1.5px solid #E4E4EF;font-family:'Inter',sans-serif;font-size:13px;margin-bottom:14px;"/>
+    <label style="display:block;font-size:12px;font-weight:600;color:#3A3A52;margin-bottom:5px;">How many were pending on that date?</label>
+    <input type="number" id="wt-start-count" min="1" max="100" value="13" style="width:100%;padding:9px 12px;border-radius:8px;border:1.5px solid #E4E4EF;font-family:'Inter',sans-serif;font-size:13px;margin-bottom:18px;"/>
+    <div id="wt-preview" style="background:#F0FDF4;border-radius:8px;padding:10px 12px;border:1px solid #BBF7D0;font-size:13px;color:#166534;margin-bottom:16px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="saveWeeklyTestSetup()" style="flex:1;background:linear-gradient(135deg,#4F6EF7,#8B5CF6);color:#fff;border:none;border-radius:9px;padding:12px;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">Save</button>
+      <button onclick="document.getElementById('wt-modal').style.display='none'" style="flex:1;background:#F7F7FB;color:#3A3A52;border:1.5px solid #E4E4EF;border-radius:9px;padding:12px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MORE TODAY MODAL -->
+<div id="addmore-modal" style="display:none;position:fixed;inset:0;background:rgba(15,15,26,.75);z-index:9997;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:22px 20px;max-width:360px;width:92%;margin:auto;position:relative;">
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:4px;">Add tasks for today</div>
+    <p style="font-size:13px;color:#7C7C99;margin-bottom:16px;line-height:1.5;">You've got spare time — let's use it. How long do you have, and what do you want to focus on?</p>
+    <label style="display:block;font-size:12px;font-weight:600;color:#3A3A52;margin-bottom:5px;">Free hours remaining today</label>
+    <input type="number" id="addmore-hours" min="0.5" max="10" step="0.5" value="2" style="width:100%;padding:9px 12px;border-radius:8px;border:1.5px solid #E4E4EF;font-family:'Inter',sans-serif;font-size:13px;margin-bottom:14px;box-sizing:border-box;"/>
+    <label style="display:block;font-size:12px;font-weight:600;color:#3A3A52;margin-bottom:8px;">Focus areas (tap to toggle)</label>
+    <div id="addmore-subjects" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">
+      <button type="button" class="subj-toggle active" data-subj="english"   onclick="toggleSubjFilter(this)">English</button>
+      <button type="button" class="subj-toggle active" data-subj="lr"        onclick="toggleSubjFilter(this)">Logical Reasoning</button>
+      <button type="button" class="subj-toggle active" data-subj="legal"     onclick="toggleSubjFilter(this)">Legal Reasoning</button>
+      <button type="button" class="subj-toggle active" data-subj="quants"    onclick="toggleSubjFilter(this)">Quantitative Aptitude</button>
+      <button type="button" class="subj-toggle active" data-subj="gk"        onclick="toggleSubjFilter(this)">GK & CA</button>
+      <button type="button" class="subj-toggle active" data-subj="magazine"  onclick="toggleSubjFilter(this)">📰 Magazine</button>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button type="button" onclick="generateExtraBlocks()" style="flex:1;background:linear-gradient(135deg,#4F6EF7,#8B5CF6);color:#fff;border:none;border-radius:9px;padding:12px;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation;">Build extra tasks →</button>
+      <button type="button" onclick="document.getElementById('addmore-modal').style.display='none'" style="flex:1;background:#F7F7FB;color:#3A3A52;border:1.5px solid #E4E4EF;border-radius:9px;padding:12px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAGAZINE PARTS MODAL -->
+<div id="magparts-modal" style="display:none;position:fixed;inset:0;background:rgba(15,15,26,.75);z-index:9997;align-items:flex-start;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 0;">
+  <div style="background:#fff;border-radius:14px;width:92%;max-width:380px;margin:0 auto;display:flex;flex-direction:column;max-height:calc(100vh - 40px);">
+    <div style="padding:22px 20px 0;flex-shrink:0;">
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:4px;">Magazine Progress</div>
+      <p style="font-size:13px;color:#7C7C99;margin-bottom:14px;line-height:1.5;">Tap the part buttons to mark parts done. You can also change how many parts a magazine has.</p>
+    </div>
+    <div id="magparts-list" style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 20px;flex:1;"></div>
+    <div style="padding:16px 20px;flex-shrink:0;">
+      <button onclick="document.getElementById('magparts-modal').style.display='none'" style="width:100%;background:#F7F7FB;color:#3A3A52;border:1.5px solid #E4E4EF;border-radius:9px;padding:12px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation;">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <p id="loading-msg">Building your plan…</p>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">⚖</div>
+    <span class="nav-title">LawPrep Planner</span>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showScreen('dashboard')">Today</button>
+    <button class="nav-tab" onclick="showScreen('endday')">End Day</button>
+    <button class="nav-tab" onclick="showScreen('topics')">New Topics</button>
+    <button class="nav-tab" onclick="showScreen('progress')">Progress</button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SCREEN 1: DASHBOARD                                            -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div id="screen-dashboard" class="screen active">
+  <div id="empty-state" class="empty">
+    <div class="empty-icon">📚</div>
+    <h2>No plan yet</h2>
+    <p>Fill in your first check-in and I'll build a complete, hour-by-hour study plan for tomorrow.</p>
+    <button class="btn-primary" style="max-width:280px;margin:0 auto;" onclick="showScreen('endday')">Start First Check-in →</button>
+  </div>
+  <div id="plan-view" style="display:none;">
+    <div class="day-header">
+      <div class="day-meta">
+        <div class="page-title" id="plan-date-title">Tomorrow's Plan</div>
+        <p id="plan-meta-sub"></p>
+      </div>
+      <button class="btn-ghost" onclick="showScreen('endday')">Update Plan</button>
+    </div>
+    <div id="motiv-wrap"></div>
+    <div id="rollover-wrap"></div>
+    <div id="fixed-tasks-wrap"></div>
+    <div id="study-blocks-wrap"></div>
+    <div id="summary-wrap"></div>
+    <div id="add-more-wrap" style="margin-top:16px;display:none;">
+      <div class="section-divider">➕ Added today</div>
+      <div id="extra-blocks-wrap"></div>
+    </div>
+    <button class="btn-ghost" id="btn-add-more" onclick="showAddMorePanel()" style="width:100%;margin-top:16px;border:1.5px dashed #CBD5E1;color:#64748B;background:transparent;border-radius:12px;padding:14px;">
+      ＋ Add more tasks for today
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SCREEN 2: END OF DAY CHECK-IN                                  -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div id="screen-endday" class="screen">
+  <div class="page-title">End of Day Check-in</div>
+  <p class="page-sub">Fill this whenever your day ends — 10 PM, 1 AM, anytime.</p>
+
+  <div class="field">
+    <label class="field-label">Plan date (the day this plan is FOR)</label>
+    <input type="date" id="inp-plan-date" style="width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid #E4E4EF;font-family:'Inter',sans-serif;font-size:14px;box-sizing:border-box;"/>
+    <p style="font-size:11px;color:#94A3B8;margin:4px 0 0;">Defaults to tomorrow. Change this if you're catching up on missed days.</p>
+  </div>
+
+  <div class="field">
+    <label class="field-label">How many hours did you actually study today?</label>
+    <input type="number" id="inp-studied" min="0" max="16" value="0" step="0.5"/>
+  </div>
+
+  <div class="field">
+    <label class="field-label">How many hours are available tomorrow? (self-study only)</label>
+    <input type="number" id="inp-available" min="1" max="16" value="7" step="0.5"/>
+  </div>
+
+  <div class="check-row" style="margin-bottom:6px;">
+    <input type="checkbox" id="chk-test" onchange="toggleTestHrs()"/>
+    <label for="chk-test">I have a test / class tomorrow that will eat into my hours</label>
+  </div>
+  <div id="test-hrs-wrap" class="field" style="display:none;padding-left:26px;">
+    <label class="field-label">Hours taken by test/class tomorrow</label>
+    <input type="number" id="inp-test-hrs" min="0" max="10" value="2" step="0.5"/>
+  </div>
+
+  <div class="field">
+    <label class="field-label">Mock score today (if any) & weak areas noticed</label>
+    <input type="text" id="inp-mock" placeholder="e.g. 82/120 — weak in Quants DI and Legal Reasoning"/>
+  </div>
+
+  <div class="field">
+    <label class="field-label">Anything else to factor into tomorrow's plan?</label>
+    <textarea id="inp-context" rows="2" placeholder="e.g. I'm exhausted, want lighter start / focus more on Legal this week…"></textarea>
+  </div>
+
+  <div id="eod-unchecked-wrap" style="display:none;" class="field">
+    <label class="field-label">⚠ Tasks from today I didn't finish (auto-detected from unticked tasks)</label>
+    <div id="eod-unchecked-list" style="background:#FFF7ED;border-radius:8px;padding:10px 12px;border:1px solid #FED7AA;font-size:13px;color:#92400E;line-height:1.8;"></div>
+  </div>
+
+  <div id="eod-error" style="display:none;background:#FEF2F2;color:#DC2626;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:13px;"></div>
+
+  <button class="btn-primary" id="btn-generate" onclick="generatePlan()">Generate Tomorrow's Plan →</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SCREEN 3: NEW TOPICS LOG                                       -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div id="screen-topics" class="screen">
+  <div class="page-title">New Topics Log</div>
+  <p class="page-sub">Add any new topic (from any subject) that needs to be planned in.</p>
+
+  <div class="card" style="margin-bottom:14px;">
+    <div class="field">
+      <label class="field-label">Subject</label>
+      <select id="new-topic-subject">
+        <option value="English">English</option>
+        <option value="Logical Reasoning">Logical Reasoning</option>
+        <option value="Legal Reasoning">Legal Reasoning</option>
+        <option value="Quantitative Aptitude">Quantitative Aptitude</option>
+        <option value="GK & Current Affairs" selected>GK & Current Affairs</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="field-label">Topic name</label>
+      <input type="text" id="new-topic-name" placeholder="e.g. India-Saudi Arabia Relations (2 hr class)"/>
+    </div>
+    <div class="field" style="margin-bottom:0;">
+      <label class="field-label">Estimated duration (hours)</label>
+      <input type="number" id="new-topic-hrs" min="0.5" max="6" value="1" step="0.5"/>
+    </div>
+    <div style="margin-top:12px;">
+      <button class="btn-primary" style="padding:11px;" onclick="addNewTopic()">Add Topic</button>
+    </div>
+  </div>
+
+  <div id="topics-list-wrap">
+    <div class="section-divider">Pending New Topics</div>
+    <div id="topics-list" class="card"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SCREEN 4: PROGRESS                                             -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div id="screen-progress" class="screen">
+  <div class="page-title">Progress</div>
+  <p class="page-sub">Tap to log completed classes and book assignments.</p>
+  <div id="overall-bar-wrap"></div>
+  <div id="progress-cards"></div>
+
+  <!-- SYLLABUS SECTION -->
+  <div style="margin-top:24px;">
+    <div class="section-divider" style="margin-bottom:12px;">📚 Syllabus</div>
+    <p style="font-size:12px;color:#94A3B8;margin:0 0 14px;">Tap a subject to see all classes. Tick anything you've already done or done outside the scheduler.</p>
+    <div id="syllabus-subject-btns" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;"></div>
+    <div id="syllabus-panel"></div>
+  </div>
+
+  <button class="btn-danger" onclick="resetProgress()" style="margin-top:20px;">Reset All Progress</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════
+
+const SUBJ = {
+  english: { label:"English", color:"#4F6EF7",
+    classes:["Parts of Speech","Verbs","Tenses","Subject-Verb Agreement","Reading Comprehension & Analysis","Main Idea","Supporting Idea","Contextual Vocabulary","Conclusion & Inference","Giving Titles","Tones","Figures of Speech","Idioms","High-Frequency Words","Phocabulary","Phrasal Verbs","Prepositions","Nouns & Pronouns","Articles","Auxiliary Verbs","Antonyms","Synonyms","Adjectives & Comparatives","Modals"],
+    books:[{n:"Book 1",a:23},{n:"Book 2",a:21},{n:"Book 3",a:20},{n:"Book 4",a:21},{n:"Book 5",a:16},{n:"Book 6",a:17}],
+    daily:["Read 1 article (English)","Revise 20 words from vocab list","Novel reading 15 min"]
+  },
+  lr: { label:"Logical Reasoning", color:"#F97316",
+    classes:["CR: Introduction","CR: Strengthening & Weakening","CR: Conclusions","CR: Assumptions","CR: Statement Inference","CR: Evaluate Arguments","CR: Passage Based Questions","CR: Para Based Thematic Reading","CR: Mixed Bag","CR: Flow in Arguments","CR: Parallel Reasoning","AR: Coding & Decoding","AR: Blood Relations","AR: Distance & Directions","AR: Circular Arrangements","AR: Linear Arrangements","AR: Clocks & Calendars","AR: Syllogism","AR: Directions","AR: Calendar & Time Sequences","AR: Conditional Puzzles","AR: Miscellaneous Puzzles","AR: Tabulation Puzzles","AR: Cubes & Cuboids"],
+    books:[{n:"Book 1",a:25},{n:"Book 2",a:25},{n:"Book 3",a:26},{n:"Book 4",a:20},{n:"Book 5",a:14},{n:"Book 6",a:20}],
+    daily:[]
+  },
+  legal: { label:"Legal Reasoning", color:"#10B981",
+    classes:["Law of Torts 1/7","Law of Torts 2/7","Law of Torts 3/7","Law of Torts 4/7","Law of Torts 5/7","Law of Torts 6/7","Law of Torts 7/7","Law of Crimes 1/8","Law of Crimes 2/8","Law of Crimes 3/8","Law of Crimes 4/8","Law of Crimes 5/8","Law of Crimes 6/8","Law of Crimes 7/8","Law of Crimes 8/8","Law of Contracts 1/8","Law of Contracts 2/8","Law of Contracts 3/8","Law of Contracts 4/8","Law of Contracts 5/8","Law of Contracts 6/8","Law of Contracts 7/8","Law of Contracts 8/8","Constitutional Law 1/10","Constitutional Law 2/10","Constitutional Law 3/10","Constitutional Law 4/10","Constitutional Law 5/10","Constitutional Law 6/10","Constitutional Law 7/10","Constitutional Law 8/10","Constitutional Law 9/10","Constitutional Law 10/10","Hindu Marriage Act 1/3","Hindu Marriage Act 2/3","Hindu Marriage Act 3/3","Hindu Succession Act 1/3","Hindu Succession Act 2/3","Hindu Succession Act 3/3","Hindu Inheritance Act 1/3","Hindu Inheritance Act 2/3","Hindu Inheritance Act 3/3","Muslim Marriage Act 1/3","Muslim Marriage Act 2/3","Muslim Marriage Act 3/3","Muslim Succession Act 1/3","Muslim Succession Act 2/3","Muslim Succession Act 3/3","Muslim Inheritance Act 1/3","Muslim Inheritance Act 2/3","Muslim Inheritance Act 3/3","Legal CA 1/15","Legal CA 2/15","Legal CA 3/15","Legal CA 4/15","Legal CA 5/15","Legal CA 6/15","Legal CA 7/15","Legal CA 8/15","Legal CA 9/15","Legal CA 10/15","Legal CA 11/15","Legal CA 12/15","Legal CA 13/15","Legal CA 14/15","Legal CA 15/15"],
+    books:[{n:"Book 1",a:9},{n:"Book 2",a:2},{n:"Book 3",a:20},{n:"Book 4",a:28},{n:"Book 5",a:15},{n:"Book 6",a:10}],
+    daily:["Read 1 legal article","Legal CA magazine + notes (weekly)"]
+  },
+  quants: { label:"Quantitative Aptitude", color:"#EF4444",
+    classes:["Percentages","Ratio & Proportions","Profit & Loss","Simple Interest","Compound Interest","Averages","Partnership","Time & Work","Time Speed Distance","Relative Speed","Mensuration 2D","Mensuration 3D","Venn Diagrams","Probability","Mixture Alligation","Boat & Stream","Permutation & Combination"],
+    books:[{n:"Book 1",a:21},{n:"Book 2",a:32},{n:"Book 3",a:20},{n:"Book 4",a:19},{n:"Book 5",a:27}],
+    daily:[]
+  },
+  gk: { label:"GK & Current Affairs", color:"#8B5CF6",
+    classes:[], books:[],
+    daily:["Read newspaper (1–1.5 hrs)","20 GK Today MCQs (45–55 min)","Attend & revise 4 PM class"]
+  }
+};
+
+const GK_EXTRA = [
+  "India Oman Deal","New IIP Series","Land Port Management System","NCERT Controversy Marathas/Rajputs","FIFA","Roland Garros Tournament","E85 Flex Fuel Vehicles","Trump & Xi Summit","Quad Summit","Ebola & Hanta Virus","National Biofuel Policy","Buddhism","1857 Revolt","India UAE Relations","India Nepal Border Dispute","500 Years of Mughals","BRICS Foreign Ministers Meet","Super El Nino","India Socio Religious Reform Movements","India GCC Relations","Komagata Maru Incident","India Africa Forum Summit","Online Gaming Rules","Telangana Caste Survey","RBI Monetary Policy Framework","WB SIR Judgement","Protective Circular on Athletes","Three Language Formula","Hansi Butana Canal","World Inequality Lab & Keytruda","National Repository Deep Sea Fauna","Jewar Airport & Biofuel Policy","Downfall of Naxalism Part 1","Downfall of Naxalism Part 2","Increase in Lok Sabha Seats Part 1","Increase in Lok Sabha Seats Part 2","GK Section Analysis + NDCs Part 2","Relief Bhavya Scheme & Jal Jeevan Mission","Census & Delimitation","Women Reservation Act","WTO Evolution","WTO Ministerial Conference 14","80 Years RIN Mutiny & IWD","LIGO & ICC World Cup","Solid Waste Management & AMR Study","RBI Forex Management","India Updated NDCs Part 1","GST","March AILET CA","UGC Guidelines","New GDP & CPI Series","Essential Commodities Act","NavIC Atomic Clock Failure","FDI Policy Change","India France Partnership","India 7th National Biodiversity Report","Cheetah Reintroduction Plan","Fiscal Health Index","Ladakh Statehood Issue","PM CARES Fund Issue","Greater Nagalim","India AI Impact Summit","Nepal Elections","Taliban Pakistan Conflict Part 2","No Confidence Motion Against Speaker","CEC Removal","Tulbul Project Ganga Water Treaty Part 1","Tulbul Project Ganga Water Treaty Part 2","Taliban Pakistan Conflict Part 1","Ramsar Convention","Static Budget Part 1","Static Budget Part 2","Budget Macro Economic Analysis","Budget 16th Finance Commission","Budget Bioshakti Pharma","Budget ISM 2.0","Budget Integrated Textile Mission","Budget MSMEs","Bharat Taxi","PSLV C62 Part 1","PSLV C62 Part 2","India China Border Dispute Part 1","India China Border Dispute Part 2","Shanti Act Part 1","Shanti Act Part 2","Shanti Act Part 3","Greenland Issue","Artemis 2 Mission","Global Risks Report 2026","Sakshgam Valley","Myanmar Elections Part 1","Myanmar Elections Part 2","India Germany Relations","Venezuela Crisis","Bangladesh Elections Part 1","Bangladesh Elections Part 2","Iran Gen Z Protest Part 1","Iran Gen Z Protest Part 2","Aravalli Hills Crisis","VB-G Ramji G Bill","India Oman Deal CEPA","[Static] Important River Systems","[Static] Mountain Ranges Passes Islands","[Static] Important Minerals & Ports","[Static] Indus Valley Civilisation","[Static] Vedic Age","[Static] Mauryan Empire","[Static] Chola Kingdom","[Static] Important Acts of British Era","[Static] Indian National Congress","[Static] Revolutionary Phases Freedom Struggle","[Static] Making of Indian Constitution","[Static] Salient Features of Constitution","[Static] Important Amendments Part 1"
+];
+
+const GK_REGULAR_RAW = [
+  ["Economy",9],["G7",2],["10 yrs of IBC",2],["Sedition",4],["UN",3],["Iranian Crisis",3],["Places of Worship Act",2],["Anti Defection Law",3],["MTP Act",2],["Euthanasia",1],["Delimitation",2],["Census",1],["India-Israel Relations",6],["FCRA",3],["Naxalism",2],["ONOE",3],["MCC",4],["ISRO",6],["MPLAD Scheme",1],["India China Border Dispute",2],["Venezuela Crisis",2],["President Rule",4],["Global Risk Report",2],["India 4th Largest Economy",1],["Budget 2026",1],["NRC",2],["India Foreign Policy",8],["UAPA",4],["Collegium",4],["Defense",4],["MGNREGA",2],["Medieval History",4],["RPA 1951",3],["Indian Polity",7],["North East Issues",3],["Electoral Bond",3],["NEO",3],["Bihar SIR",2],["Enforcement Directorate",3],["BRICS",2]
+];
+const GK_REGULAR = GK_REGULAR_RAW.flatMap(([t,p])=>Array.from({length:p},(_,i)=>`${t} Part ${i+1}`));
+
+// ═══════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════
+
+// ── MAGAZINE HELPERS ────────────────────────────────────────────────
+// Every 15 days from magazineStartDate, one new magazine arrives.
+// magazineStartCount = how many were already piled up when you set the start date.
+
+function calcTotalMagazinesDue() {
+  const startDate  = S.magazineStartDate ? new Date(S.magazineStartDate) : null;
+  const startCount = (S.magazineStartCount != null) ? S.magazineStartCount : 11;
+  if (!startDate) return startCount;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const sd = new Date(startDate); sd.setHours(0,0,0,0);
+  const daysDiff = Math.floor((today - sd) / 86400000);
+  const newArrivals = Math.max(0, Math.floor(daysDiff / 15));
+  return startCount + newArrivals;
+}
+
+function calcTotalWeeklyTestsDue() {
+  const startDate  = S.weeklyTestStartDate ? new Date(S.weeklyTestStartDate) : null;
+  const startCount = (S.weeklyTestStartCount != null) ? S.weeklyTestStartCount : 13;
+  if (!startDate) return startCount;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const sd = new Date(startDate); sd.setHours(0,0,0,0);
+  const daysDiff = Math.floor((today - sd) / 86400000);
+  const newArrivals = Math.max(0, Math.floor(daysDiff / 7));
+  return startCount + newArrivals;
+}
+
+// ── SET-BASED CLASS TRACKING HELPERS ──────────────────────────────
+// classDoneSet: array of indices of individually ticked classes
+// classes (counter): highest consecutive index — used by the scheduler
+//   e.g. doneSet=[0,1,3] → counter=2 (0&1 consecutive, 3 has a gap)
+// This lets syllabus tick/untick any class independently while
+// keeping the scheduler's "next class" logic correct.
+
+function getClassDoneSet(key) {
+  return new Set(S.progress[key]?.classDoneSet || []);
+}
+
+function getGkDoneSet(type) {
+  // type = 'extra' | 'regular'
+  return new Set(S.progress.gk[type + 'DoneSet'] || []);
+}
+
+// Derive the consecutive counter from a Set
+// = largest N such that 0,1,...,N-1 are all in the set
+function consecutiveCount(doneSet, total) {
+  let n = 0;
+  while (n < total && doneSet.has(n)) n++;
+  return n;
+}
+
+// Toggle a class index in the set, then re-derive the counter
+function toggleClassInSet(key, idx) {
+  const pr     = S.progress[key];
+  const total  = SUBJ[key].classes.length;
+  const set    = getClassDoneSet(key);
+  if (set.has(idx)) set.delete(idx); else set.add(idx);
+  pr.classDoneSet = [...set];
+  pr.classes      = consecutiveCount(set, total);
+  saveState();
+  renderProgress();
+}
+
+function toggleGkInSet(type, idx) {
+  const list  = type === 'extra' ? GK_EXTRA : GK_REGULAR;
+  const pr    = S.progress.gk;
+  const key   = type + 'DoneSet';
+  const set   = getGkDoneSet(type);
+  if (set.has(idx)) set.delete(idx); else set.add(idx);
+  pr[key]       = [...set];
+  pr[type]      = consecutiveCount(set, list.length);
+  saveState();
+  renderProgress();
+}
+
+// Migrate old state: if classDoneSet is missing, derive it from the counter
+function migrateProgressState() {
+  const keys = ['english','lr','legal','quants'];
+  keys.forEach(key => {
+    const pr = S.progress[key];
+    if (!pr) return;
+    if (!pr.classDoneSet || pr.classDoneSet.length === 0) {
+      // Build set from counter: assume first N classes are done
+      pr.classDoneSet = Array.from({length: pr.classes || 0}, (_, i) => i);
+    }
+  });
+  const gk = S.progress.gk;
+  if (!gk.extraDoneSet || gk.extraDoneSet.length === 0)
+    gk.extraDoneSet = Array.from({length: gk.extra || 0}, (_, i) => i);
+  if (!gk.regularDoneSet || gk.regularDoneSet.length === 0)
+    gk.regularDoneSet = Array.from({length: gk.regular || 0}, (_, i) => i);
+}
+
+function defaultState() {
+  return {
+    plan: null,
+    checkedTasks: {},
+    magazineStartDate: null,   // "YYYY-MM-DD" — date you had 11 magazines piled up
+    magazineStartCount: 11,    // how many were piled up on that date
+    weeklyTestStartDate: null,   // "YYYY-MM-DD" — date you had 13 tests piled up
+    weeklyTestStartCount: 13,    // how many were piled up on that date
+    progress: {
+      english: { classes: 0, classDoneSet: [], books: [0,0,0,0,0,0] },
+      lr:      { classes: 0, classDoneSet: [], books: [0,0,0,0,0,0] },
+      legal:   { classes: 0, classDoneSet: [], books: [0,0,0,0,0,0] },
+      quants:  { classes: 0, classDoneSet: [], books: [0,0,0,0,0] },
+      gk:      { extra: 0, extraDoneSet: [], regular: 0, regularDoneSet: [], weeklyTests: 0,
+                 // magazines: array of {total_parts, done_parts} per magazine
+                 // e.g. [{total_parts:5, done_parts:2}, {total_parts:4, done_parts:0}, ...]
+                 magazineParts: []
+               }
+    },
+    newTopics: []
+  };
+}
+
+let S = defaultState();
+
+// loadState and saveState defined near INIT block below
+
+// ═══════════════════════════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════════════════════════
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  const tabs = {'dashboard':0,'endday':1,'topics':2,'progress':3};
+  document.querySelectorAll('.nav-tab')[tabs[name]]?.classList.add('active');
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'progress')  renderProgress();
+  if (name === 'topics')    renderTopicsList();
+  if (name === 'progress')  { renderProgress(); renderSyllabus(); }
+  if (name === 'endday') {
+    populateEodUnchecked();
+    // Default plan date to tomorrow, but keep any value already set
+    const pd = document.getElementById('inp-plan-date');
+    if (!pd.value) {
+      const tmr = new Date(); tmr.setDate(tmr.getDate() + 1);
+      pd.value = `${tmr.getFullYear()}-${String(tmr.getMonth()+1).padStart(2,'0')}-${String(tmr.getDate()).padStart(2,'0')}`;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SUBJECT COLOR / PILL HELPERS
+// ═══════════════════════════════════════════════════════════════════
+
+const SUBJ_COLORS = {
+  'English':'#4F6EF7','Logical Reasoning':'#F97316','Legal Reasoning':'#10B981',
+  'Quantitative Aptitude':'#EF4444','GK & Current Affairs':'#8B5CF6',
+  'GK':'#8B5CF6','Fixed':'#64748B'
+};
+function getColor(s='') {
+  for (const [k,v] of Object.entries(SUBJ_COLORS)) { if (s.includes(k)) return v; }
+  return '#64748B';
+}
+const TYPE_LABELS = {
+  new_class:'New Class', book_practice:'Book Practice',
+  revision:'Revision', gk_class:'GK Class', mock_review:'Mock Review', fixed:'Fixed'
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// RENDER DASHBOARD
+// ═══════════════════════════════════════════════════════════════════
+
+function renderDashboard() {
+  if (!S.plan) {
+    document.getElementById('empty-state').style.display = 'block';
+    document.getElementById('plan-view').style.display = 'none';
+    return;
+  }
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('plan-view').style.display = 'block';
+
+  const p = S.plan;
+  document.getElementById('plan-date-title').textContent = formatDateTitle(p.date);
+  document.getElementById('plan-meta-sub').textContent = `${p.date} · ${p.available_hours} hrs available`;
+
+  // Motivation
+  const mw = document.getElementById('motiv-wrap');
+  mw.innerHTML = p.motivation
+    ? `<div class="motiv-banner"><p>"${p.motivation}"</p></div>` : '';
+
+  // Rolled over
+  const rw = document.getElementById('rollover-wrap');
+  rw.innerHTML = '';
+  if (p.rolled_over && p.rolled_over.length > 0) {
+    rw.innerHTML = `<div class="rollover-banner"><div class="rl">⚠ Rolled over from yesterday</div>${p.rolled_over.map(t=>`<p>• ${t}</p>`).join('')}</div>`;
+  }
+
+  // Fixed tasks
+  const fw = document.getElementById('fixed-tasks-wrap');
+  fw.innerHTML = '';
+  if (p.fixed_daily && p.fixed_daily.length) {
+    fw.innerHTML = `<div class="section-divider">🔒 Fixed daily tasks</div>` +
+      p.fixed_daily.map((t,i) => taskBlockHTML(`fix_${i}`, t.task, 'Fixed', 'fixed', t.duration_min, '', false)).join('');
+  }
+
+  // Study blocks
+  const sw = document.getElementById('study-blocks-wrap');
+  sw.innerHTML = `<div class="section-divider">Study blocks</div>` +
+    (p.study_blocks||[]).map((b,i) => taskBlockHTML(`blk_${i}`, b.task, b.subject, b.type, b.duration_min, b.notes, b.priority==='high')).join('');
+
+  // Summary
+  const smw = document.getElementById('summary-wrap');
+  smw.innerHTML = p.day_summary
+    ? `<div class="summary-banner"><p>${p.day_summary}</p></div>` : '';
+
+  // Extra blocks (added mid-day)
+  const amw = document.getElementById('add-more-wrap');
+  const ebw = document.getElementById('extra-blocks-wrap');
+  if (p.extra_blocks && p.extra_blocks.length > 0) {
+    ebw.innerHTML = '';
+    p.extra_blocks.forEach((b, i) => {
+      ebw.innerHTML += taskBlockHTML(`ext_${i}`, b.task, b.subject, b.type, b.duration_min, b.notes, b.priority==='high');
+    });
+    amw.style.display = 'block';
+  } else {
+    ebw.innerHTML = '';
+    amw.style.display = 'none';
+  }
+
+  // Re-attach check listeners + restore state
+  if (p.extra_blocks && p.extra_blocks.length > 0) renderSwapButtons();
+  restoreChecks();
+}
+
+function taskBlockHTML(id, title, subject, type, dur, notes, highPriority) {
+  const col = getColor(subject);
+  const checked = S.checkedTasks[id] || false;
+  return `
+    <div class="task-block${checked?' done':''}" id="wrap_${id}" style="border-left-color:${col};">
+      <div class="task-check${checked?' checked':''}" id="chk_${id}" style="${checked?`background:${col};`:`border-color:${col};`}" onclick="toggleTask('${id}','${col}')"></div>
+      <div class="task-body">
+        <div class="task-header">
+          <span class="subj-pill" style="background:${col}20;color:${col};">${subject}</span>
+          <span class="type-pill" style="background:${col}18;color:${col};">${TYPE_LABELS[type]||type}</span>
+          ${highPriority?'<span class="priority-high">High Priority</span>':''}
+          <span class="task-dur">${dur} min</span>
+        </div>
+        <div class="task-title">${title}</div>
+        ${notes?`<div class="task-notes">${notes}</div>`:''}
+      </div>
+    </div>`;
+}
+
+function toggleTask(id, col) {
+  const wasChecked = !!S.checkedTasks[id];
+  S.checkedTasks[id] = !wasChecked;
+  saveState();
+
+  // Auto-update progress when ticking plan tasks
+  autoUpdateProgress(id, S.checkedTasks[id]);
+
+  const wrap = document.getElementById('wrap_'+id);
+  const chk  = document.getElementById('chk_'+id);
+  if (S.checkedTasks[id]) {
+    wrap.classList.add('done');
+    chk.classList.add('checked');
+    chk.style.background = col; chk.style.borderColor = 'transparent';
+  } else {
+    wrap.classList.remove('done');
+    chk.classList.remove('checked');
+    chk.style.background = ''; chk.style.borderColor = col;
+  }
+}
+
+function autoUpdateProgress(id, isNowChecked) {
+  // Get the block from the plan
+  const p = S.plan;
+  if (!p) return;
+  let block = null;
+  if (id.startsWith('blk_')) {
+    const idx = parseInt(id.replace('blk_',''));
+    block = (p.study_blocks||[])[idx];
+  } else if (id.startsWith('ext_')) {
+    const idx = parseInt(id.replace('ext_',''));
+    block = (p.extra_blocks||[])[idx];
+  }
+  if (!block) return;
+
+  const delta = isNowChecked ? 1 : -1;
+  const type  = block.type;
+  const subj  = block.subject;
+  const task  = block.task || '';
+
+  // GK classes
+  if (type === 'gk_class') {
+    if (task.toLowerCase().includes('extra')) {
+      S.progress.gk.extra = Math.max(0, Math.min(S.progress.gk.extra + delta, GK_EXTRA.length));
+    } else if (task.toLowerCase().includes('regular')) {
+      S.progress.gk.regular = Math.max(0, Math.min(S.progress.gk.regular + delta, GK_REGULAR.length));
+    }
+    saveState();
+    return;
+  }
+
+  // Magazine parts
+  if (type === 'magazine') {
+    // Parse magazine index from task name e.g. "Backlog Mag #2" or "New Mag #1"
+    const magMatch = task.match(/Mag #(\d+)/);
+    const partMatch = task.match(/Part (\d+)\//);
+    if (magMatch && partMatch) {
+      const magIdx  = parseInt(magMatch[1]) - 1;
+      const partNum = parseInt(partMatch[1]);
+      const parts   = S.progress.gk.magazineParts || [];
+      if (parts[magIdx]) {
+        if (isNowChecked) {
+          parts[magIdx].done_parts = Math.min(parts[magIdx].total_parts, Math.max(parts[magIdx].done_parts, partNum));
+        } else {
+          parts[magIdx].done_parts = Math.max(0, Math.min(parts[magIdx].done_parts, partNum - 1));
+        }
+        saveState();
+      }
+    }
+    return;
+  }
+
+  // Weekly tests
+  if (type === 'mock_review' || task.toLowerCase().includes('weekly test')) {
+    S.progress.gk.weeklyTests = Math.max(0, Math.min((S.progress.gk.weeklyTests||0) + delta, calcTotalWeeklyTestsDue()));
+    saveState();
+    return;
+  }
+
+  // Core subject new_class
+  if (type === 'new_class') {
+    const keyMap = {
+      'English': 'english', 'Logical Reasoning': 'lr',
+      'Legal Reasoning': 'legal', 'Quantitative Aptitude': 'quants'
+    };
+    const key = keyMap[subj];
+    if (key) {
+      // Use Set-based tracking so syllabus stays consistent
+      const idx = S.progress[key].classes + (delta > 0 ? 0 : -1);
+      if (delta > 0) {
+        const set = getClassDoneSet(key);
+        set.add(idx);
+        S.progress[key].classDoneSet = [...set];
+        S.progress[key].classes = consecutiveCount(set, SUBJ[key].classes.length);
+      } else {
+        const set = getClassDoneSet(key);
+        const toRemove = S.progress[key].classes - 1;
+        if (toRemove >= 0) { set.delete(toRemove); S.progress[key].classDoneSet = [...set]; }
+        S.progress[key].classes = consecutiveCount(set, SUBJ[key].classes.length);
+      }
+      saveState();
+    }
+    return;
+  }
+
+  // Book practice
+  if (type === 'book_practice') {
+    const keyMap = {
+      'English': 'english', 'Logical Reasoning': 'lr',
+      'Legal Reasoning': 'legal', 'Quantitative Aptitude': 'quants'
+    };
+    const key = keyMap[subj];
+    if (!key) return;
+    // Parse book index from task e.g. "Book 2, Assignment 7"
+    const bookMatch = task.match(/Assignment (\d+) of (\d+)/);
+    if (bookMatch) {
+      const assnNum = parseInt(bookMatch[1]);
+      // Find which book this assignment belongs to
+      let cumulative = 0;
+      for (let i = 0; i < SUBJ[key].books.length; i++) {
+        cumulative += SUBJ[key].books[i].a;
+        if (assnNum <= cumulative) {
+          const current = S.progress[key].books[i] || 0;
+          S.progress[key].books[i] = Math.max(0, Math.min(current + delta, SUBJ[key].books[i].a));
+          saveState();
+          break;
+        }
+      }
+    }
+  }
+}
+
+function restoreChecks() {
+  Object.entries(S.checkedTasks).forEach(([id, checked]) => {
+    if (!checked) return;
+    const col = getColor(document.querySelector(`#wrap_${id} .subj-pill`)?.textContent||'');
+    const wrap = document.getElementById('wrap_'+id);
+    const chk  = document.getElementById('chk_'+id);
+    if (!wrap || !chk) return;
+    wrap.classList.add('done');
+    chk.classList.add('checked');
+    chk.style.background = col; chk.style.borderColor = 'transparent';
+  });
+}
+
+function formatDateTitle(dateStr) {
+  if (!dateStr) return "Tomorrow's Plan";
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-IN', {weekday:'long', day:'numeric', month:'long'}) + "'s Plan";
+  } catch { return "Tomorrow's Plan"; }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// POPULATE EOD — auto-detect unchecked
+// ═══════════════════════════════════════════════════════════════════
+
+function populateEodUnchecked() {
+  if (!S.plan) { document.getElementById('eod-unchecked-wrap').style.display='none'; return; }
+  const p = S.plan;
+  const all = [];
+  (p.fixed_daily||[]).forEach((t,i)=>{ if (!S.checkedTasks[`fix_${i}`]) all.push(t.task); });
+  (p.study_blocks||[]).forEach((b,i)=>{ if (!S.checkedTasks[`blk_${i}`]) all.push(b.task); });
+  if (all.length > 0) {
+    document.getElementById('eod-unchecked-wrap').style.display='block';
+    document.getElementById('eod-unchecked-list').innerHTML = all.map(t=>`• ${t}`).join('<br/>');
+  } else {
+    document.getElementById('eod-unchecked-wrap').style.display='none';
+  }
+}
+
+function toggleTestHrs() {
+  document.getElementById('test-hrs-wrap').style.display =
+    document.getElementById('chk-test').checked ? 'block' : 'none';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SMART LOCAL PLANNER ENGINE — no API needed
+// ═══════════════════════════════════════════════════════════════════
+
+// Motivation bank — rotated by day
+const MOTIVATIONS = [
+  "CLAT 2026 is yours to win. Every hour you put in today compounds into confidence on exam day.",
+  "The difference between a rank-1 aspirant and everyone else? They showed up on the hard days too.",
+  "You don't need to be brilliant. You need to be consistent. Show up, grind, repeat.",
+  "Legal reasoning isn't just for lawyers — it's the skill of thinking clearly under pressure. Build it today.",
+  "One good GK class today = one less gap on exam day. Stay ahead of the curve.",
+  "CLAT rewards the prepared. The unprepared are just spectators. Choose your side.",
+  "Your future self is watching what you do right now. Make them proud.",
+  "Small daily wins stack into massive results by August. Trust the process.",
+  "Hard work beats talent when talent doesn't work hard. You have both — use them.",
+  "The newspaper you read today might show up as a question in August. Read it like it matters.",
+  "Every practice book assignment you tick off is one less thing standing between you and your dream law school.",
+  "Revision isn't boring — it's how your brain locks in what you've already earned.",
+  "You're not just preparing for an exam. You're building the habits of a lawyer.",
+  "Legal CA isn't optional — it's the edge that separates top 50 from top 500. Own it.",
+  "When motivation fails, discipline steps in. Today, be disciplined.",
+];
+
+// Revision topics — only picks from classes already studied
+// Each entry maps to an index range in that subject's class list
+function getStudiedRevisionTopic(key, excludeTopics) {
+  if (key === 'gk') {
+    const pool = ["India Current Affairs", "International Events", "Economy & Finance",
+                  "Science & Tech", "Static GK: Geography", "Static GK: History",
+                  "Static GK: Polity", "Schemes & Indices"];
+    const avail = pool.filter(t => !excludeTopics || !excludeTopics.has(t));
+    return avail.length ? avail[Math.floor(Math.random() * avail.length)] : pool[0];
+  }
+  const classesDone = S.progress[key]?.classes || 0;
+  if (classesDone === 0) return null; // nothing studied yet — don't suggest revision
+  // Pick from the actual class names already completed
+  const studied = (SUBJ[key]?.classes || []).slice(0, classesDone);
+  const avail   = studied.filter(t => !excludeTopics || !excludeTopics.has(t));
+  if (!avail.length) return studied[Math.floor(Math.random() * studied.length)];
+  return avail[Math.floor(Math.random() * avail.length)];
+}
+
+// Book assignment tracking helper
+function getNextBookAssignment(key) {
+  const subj = SUBJ[key];
+  if (!subj || !subj.books || !subj.books.length) return null;
+  const done = S.progress[key].books;
+  for (let i = 0; i < subj.books.length; i++) {
+    const completed = done[i] || 0;
+    const total = subj.books[i].a;
+    if (completed < total) {
+      return { bookIdx: i, bookName: subj.books[i].n, nextAssignment: completed + 1, total };
+    }
+  }
+  return null; // all books done
+}
+
+// Get the next class for a subject
+function getNextClass(key) {
+  const classes = key === 'gk_extra' ? GK_EXTRA :
+                  key === 'gk_regular' ? GK_REGULAR :
+                  (SUBJ[key]?.classes || []);
+  const done = key === 'gk_extra' ? S.progress.gk.extra :
+               key === 'gk_regular' ? S.progress.gk.regular :
+               (S.progress[key]?.classes || 0);
+  return done < classes.length ? classes[done] : null;
+}
+
+// How behind is each subject? Returns a priority score (higher = more urgent)
+function subjectUrgency(key) {
+  if (key === 'gk') return 0; // handled separately
+  const total = SUBJ[key].classes.length;
+  const done = S.progress[key].classes;
+  const bookNext = getNextBookAssignment(key);
+  const classBehind = (total - done) / total; // 0..1 fraction remaining
+  const bookBehind = bookNext ? (bookNext.nextAssignment / bookNext.total) : 1;
+  return classBehind + bookBehind;
+}
+
+// Detect day of week for weekend logic
+function getTomorrowDate() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d;
+}
+
+function pad2(n) { return String(n).padStart(2,'0'); }
+function toDateStr(d) { return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+
+// ── MAIN PLANNER ──────────────────────────────────────────────────
+
+function buildLocalPlan(inputs) {
+  const { hoursAvailable, hoursStudied, mockScore, context, hasTest, testHrs, rollover, chosenDate } = inputs;
+  const netHours = Math.max(0, hoursAvailable - testHrs);
+  const netMins  = Math.round(netHours * 60);
+  // Use chosen date if provided, otherwise default to tomorrow
+  const tomorrow = chosenDate ? new Date(chosenDate + 'T00:00:00') : getTomorrowDate();
+  const dateStr  = toDateStr(tomorrow);
+  const dayOfWeek = tomorrow.getDay(); // 0=Sun,1=Mon,...,6=Sat
+  const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+  const isFriday  = dayOfWeek === 5;
+  const pr = S.progress;
+
+  // ── 1. FIXED DAILY TASKS (~150 min) ───────────────────────────
+  const fixed_daily = [
+    { task: "Newspaper reading — scan all sections, note key events for GK", duration_min: 80 },
+    { task: "20 GK Today MCQs — attempt, review explanations, note 3 new facts", duration_min: 50 },
+    { task: "Read 1 English article — spot tone, main idea, vocab", duration_min: 10 },
+    { task: "Read 1 Legal article — identify principle & application", duration_min: 10 },
+  ];
+  const fixedMins = fixed_daily.reduce((s,t)=>s+t.duration_min, 0); // 150
+
+  // ── 2. ROLLOVER BLOCKS (HIGH priority) ────────────────────────
+  const study_blocks = [];
+  let usedMins = 0;
+
+  rollover.forEach(taskName => {
+    // Parse duration from task name heuristic
+    const durMatch = taskName.match(/(\d+)\s*hr/i);
+    const dur = durMatch ? parseInt(durMatch[1]) * 60 : 60;
+    study_blocks.push({
+      subject: inferSubjectFromTask(taskName),
+      type: 'new_class',
+      task: taskName,
+      duration_min: dur,
+      priority: 'high',
+      notes: 'Rolled over from yesterday — complete this first!'
+    });
+    usedMins += dur;
+  });
+
+  // ── 3. PENDING NEW TOPICS (HIGH priority) ─────────────────────
+  S.newTopics.forEach(t => {
+    const dur = Math.round(t.hrs * 60);
+    study_blocks.push({
+      subject: t.subject,
+      type: 'new_class',
+      task: `[New Topic] ${t.name}`,
+      duration_min: dur,
+      priority: 'high',
+      notes: 'User-flagged pending topic — schedule this soon'
+    });
+    usedMins += dur;
+  });
+
+  // ── 4. COMPUTE REMAINING BUDGET ───────────────────────────────
+  const studyBudget = Math.max(0, netMins - fixedMins);
+  let remaining = Math.max(0, studyBudget - usedMins);
+
+  // ── 5. GK CLASSES ─────────────────────────────────────────────
+  const nextGkExtra   = getNextClass('gk_extra');
+  const nextGkRegular = getNextClass('gk_regular');
+  const nextGkReg2    = GK_REGULAR[Math.min(pr.gk.regular + 1, GK_REGULAR.length - 1)];
+
+  // Don't re-schedule a GK class that's already in rollover
+  const rolloverTasks = new Set(rollover.map(t => t.toLowerCase()));
+  const extraAlreadyRolled   = nextGkExtra   && rolloverTasks.has((`GK Extra Class: ${nextGkExtra}`).toLowerCase());
+  const regularAlreadyRolled = nextGkRegular && rolloverTasks.has((`GK Regular Class: ${nextGkRegular}`).toLowerCase());
+
+  if (nextGkExtra && !extraAlreadyRolled && remaining >= 120) {
+    study_blocks.push({
+      subject: 'GK & Current Affairs',
+      type: 'gk_class',
+      task: `GK Extra Class: ${nextGkExtra}`,
+      duration_min: 120,
+      priority: isWeekend || isFriday ? 'high' : 'medium',
+      notes: 'Watch full class, pause-and-note every key fact. Add to revision sheet.'
+    });
+    remaining -= 120;
+  }
+
+  if (nextGkRegular && !regularAlreadyRolled && remaining >= 60) {
+    study_blocks.push({
+      subject: 'GK & Current Affairs',
+      type: 'gk_class',
+      task: `GK Regular Class: ${nextGkRegular}`,
+      duration_min: 60,
+      priority: 'medium',
+      notes: 'Crisp 1-hr class. Mark all facts to revise in weekly test.'
+    });
+    remaining -= 60;
+  }
+
+  if (nextGkReg2 && nextGkReg2 !== nextGkRegular && remaining >= 60 && (isWeekend || netHours >= 9)) {
+    study_blocks.push({
+      subject: 'GK & Current Affairs',
+      type: 'gk_class',
+      task: `GK Regular Class: ${nextGkReg2}`,
+      duration_min: 60,
+      priority: 'low',
+      notes: 'Second regular GK class — weekend bonus block.'
+    });
+    remaining -= 60;
+  }
+
+  // ── 5b. MAGAZINE SESSION ───────────────────────────────────────
+  // Each magazine has 10-12 topics + 20-40 pages of one-liners.
+  // We split each magazine into parts: 2-3 topics per session (~45 min each).
+  // Schedule 1 magazine session per day (or every other day if low on time).
+  const magParts = pr.gk.magazineParts || [];
+  const magDue   = calcTotalMagazinesDue();
+
+  // Ensure magazineParts array is long enough for all due magazines
+  while (magParts.length < magDue) {
+    // Default: 5 parts per magazine (covers 10-12 topics in ~2-3 topics per session)
+    magParts.push({ total_parts: 5, done_parts: 0 });
+  }
+
+  // Find the first magazine with parts remaining
+  let activeMagIdx = -1;
+  let activeMag    = null;
+  for (let i = 0; i < magParts.length; i++) {
+    if (magParts[i].done_parts < magParts[i].total_parts) {
+      activeMagIdx = i;
+      activeMag    = magParts[i];
+      break;
+    }
+  }
+
+  if (activeMag && remaining >= 45) {
+    const partNum   = activeMag.done_parts + 1;
+    const totalParts = activeMag.total_parts;
+    const magNum    = activeMagIdx + 1;
+    const topicStart = (activeMag.done_parts * 2) + 1;
+    const topicEnd   = Math.min(topicStart + 1, 12);
+    const isLastPart = (partNum === totalParts);
+    const magTag     = magNum <= 5 ? `[Backlog Mag #${magNum}]` : `[New Mag #${magNum - 5}]`;
+
+    study_blocks.push({
+      subject: 'GK & Current Affairs',
+      type: 'magazine',
+      task: `${magTag} Magazine ${magNum} — Part ${partNum}/${totalParts}: Topics ${topicStart}–${topicEnd} + One-liners`,
+      duration_min: 45,
+      priority: magNum <= 5 ? 'high' : 'medium',
+      notes: isLastPart
+        ? `Final part of Magazine ${magNum}. Cover remaining topics + finish all one-liners. Make a 1-page summary of the whole magazine before closing.`
+        : `Read topics ${topicStart}–${topicEnd} fully. For each topic: note key facts, dates, names. Then cover the corresponding one-liner pages. Do NOT rush — 2 topics done well beats 5 topics skimmed.`
+    });
+    remaining -= 45;
+  }
+
+  // ── 6. SUBJECT CLASS + PRACTICE ROTATION ──────────────────────
+  // Sort subjects by urgency (most behind = first)
+  const coreSubjects = ['english','lr','legal','quants'];
+  const sorted = [...coreSubjects].sort((a,b) => subjectUrgency(b) - subjectUrgency(a));
+
+  // Weekend/Friday: bump legal to top
+  if (isWeekend || isFriday) {
+    const li = sorted.indexOf('legal');
+    if (li > 0) { sorted.splice(li,1); sorted.unshift('legal'); }
+  }
+
+  // Mock score weak area detection
+  const weakSubjects = detectWeakAreas(mockScore, context);
+  weakSubjects.forEach(ws => {
+    const idx = sorted.indexOf(ws);
+    if (idx > 1) { sorted.splice(idx,1); sorted.splice(1,0,ws); }
+  });
+
+  // Assign class + book practice block per subject while time remains
+  for (const key of sorted) {
+    if (remaining < 30) break;
+
+    const nextClass = getNextClass(key);
+    const label = SUBJ[key].label;
+
+    // New class block (60–90 min)
+    if (nextClass && remaining >= 60) {
+      const dur = key === 'legal' ? 75 : 60;
+      study_blocks.push({
+        subject: label,
+        type: 'new_class',
+        task: `${label}: ${nextClass}`,
+        duration_min: dur,
+        priority: weakSubjects.includes(key) ? 'high' : 'medium',
+        notes: key === 'english' ? 'Watch class, note 5 vocab words + examples in your notebook.' :
+               key === 'lr'      ? 'Solve all examples during class. Pause and attempt before seeing solution.' :
+               key === 'legal'   ? 'Note the legal principle, exceptions, and 2 example cases.' :
+                                   'Note all formulas. Solve 3–5 examples by yourself after watching.'
+      });
+      remaining -= dur;
+    }
+
+    if (remaining < 30) break;
+
+    // Book practice block (45–60 min)
+    const bookNext = getNextBookAssignment(key);
+    if (bookNext && remaining >= 45) {
+      const { bookName, nextAssignment, total } = bookNext;
+      const dur = Math.min(remaining, key === 'quants' ? 60 : 45);
+      study_blocks.push({
+        subject: label,
+        type: 'book_practice',
+        task: `${label} — ${bookName}, Assignment ${nextAssignment} of ${total}`,
+        duration_min: dur,
+        priority: 'medium',
+        notes: `Timed practice. Aim to finish all Qs in ${dur} min. Review every wrong answer.`
+      });
+      remaining -= dur;
+    }
+  }
+
+  // ── 7. REVISION BLOCK ─────────────────────────────────────────
+  if (remaining >= 20) {
+    const subjToRevise = sorted[0]; // most urgent subject
+    const topic = getStudiedRevisionTopic(subjToRevise, null);
+    if (!topic) { remaining = 0; } // nothing studied yet, skip
+    const dur = Math.min(remaining, 20);
+    study_blocks.push({
+      subject: SUBJ[subjToRevise]?.label || 'GK & Current Affairs',
+      type: 'revision',
+      task: `Quick Revision: ${topic}`,
+      duration_min: dur,
+      priority: 'low',
+      notes: 'Flashcard-style: cover notes, recall key points, check. No re-reading passively.'
+    });
+    remaining -= dur;
+  }
+
+  // ── 8. MOCK REVIEW BLOCK (if mock score provided) ─────────────
+  if (mockScore && remaining >= 30) {
+    study_blocks.push({
+      subject: 'Quantitative Aptitude',
+      type: 'mock_review',
+      task: `Mock Review: Analyse errors from today's mock (${mockScore})`,
+      duration_min: Math.min(remaining, 30),
+      priority: 'high',
+      notes: 'Categorise errors: silly mistake / concept gap / time. Make a correction log. Revisit within 2 days.'
+    });
+    remaining -= 30;
+  }
+
+  // ── 9. GENERATE SUMMARY & MOTIVATION ─────────────────────────
+  const totalScheduled = (netMins - remaining);
+  const dayIdx = (tomorrow.getDate() + tomorrow.getMonth()) % MOTIVATIONS.length;
+  const motivation = MOTIVATIONS[dayIdx];
+
+  const subjectsCovered = [...new Set(study_blocks.map(b=>b.subject))];
+  const day_summary = buildSummary(netHours, study_blocks, rollover, mockScore, hasTest, testHrs, subjectsCovered);
+
+  return {
+    date: dateStr,
+    available_hours: netHours,
+    fixed_daily,
+    study_blocks,
+    rolled_over: rollover,
+    day_summary,
+    motivation
+  };
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────
+
+function inferSubjectFromTask(task) {
+  const t = task.toLowerCase();
+  if (t.includes('english') || t.includes('vocab') || t.includes('grammar')) return 'English';
+  if (t.includes('logical') || t.includes('reasoning') || t.includes('lr') || t.includes('cr:') || t.includes('ar:')) return 'Logical Reasoning';
+  if (t.includes('legal') || t.includes('tort') || t.includes('contract') || t.includes('constitution') || t.includes('law')) return 'Legal Reasoning';
+  if (t.includes('quant') || t.includes('math') || t.includes('aptitude') || t.includes('percent') || t.includes('ratio')) return 'Quantitative Aptitude';
+  if (t.includes('gk') || t.includes('current affairs') || t.includes('static')) return 'GK & Current Affairs';
+  return 'GK & Current Affairs'; // fallback
+}
+
+function detectWeakAreas(mockScore, context) {
+  const weak = [];
+  const text = ((mockScore||'') + ' ' + (context||'')).toLowerCase();
+  if (text.includes('quant') || text.includes('di') || text.includes('math')) weak.push('quants');
+  if (text.includes('legal') || text.includes('tort') || text.includes('law')) weak.push('legal');
+  if (text.includes('english') || text.includes('rc') || text.includes('vocab')) weak.push('english');
+  if (text.includes('logical') || text.includes('reasoning') || text.includes('lr')) weak.push('lr');
+  if (text.includes('gk') || text.includes('current affairs')) weak.push('gk');
+  return weak;
+}
+
+function buildSummary(netHours, blocks, rollover, mockScore, hasTest, testHrs, subjects) {
+  const totalStudyMin = blocks.reduce((s,b)=>s+b.duration_min, 0);
+  const hrs = (totalStudyMin / 60).toFixed(1);
+  let msg = `Today's plan packs ${hrs} hrs of focused study across ${subjects.length} subjects: ${subjects.slice(0,3).join(', ')}${subjects.length>3?', and more':''}.`;
+  if (rollover.length > 0) msg += ` ${rollover.length} rolled-over task(s) are scheduled first — clear them to keep momentum.`;
+  if (mockScore) msg += ` Your mock score (${mockScore}) has been factored in — weak areas get extra attention today.`;
+  if (hasTest && testHrs > 0) msg += ` With ${testHrs}h taken by today's test/class, you have ${netHours}h net — plan is tight but effective.`;
+  if (netHours < 4) msg += ' Short day — fixed tasks + rollover cleared first. Even 3 focused hours beats 6 distracted ones.';
+  return msg;
+}
+
+// ── ENTRY POINT ───────────────────────────────────────────────────
+
+function generatePlan() {
+  const btn = document.getElementById('btn-generate');
+  const errEl = document.getElementById('eod-error');
+  errEl.style.display = 'none';
+
+  // Read chosen plan date — fallback to tomorrow if blank
+  const planDateInput = document.getElementById('inp-plan-date').value;
+  const chosenDate = planDateInput || (() => {
+    const t = new Date(); t.setDate(t.getDate()+1);
+    return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+  })();
+
+  const hoursAvailable = parseFloat(document.getElementById('inp-available').value) || 7;
+  const hoursStudied   = parseFloat(document.getElementById('inp-studied').value) || 0;
+  const mockScore      = document.getElementById('inp-mock').value.trim();
+  const context        = document.getElementById('inp-context').value.trim();
+  const hasTest        = document.getElementById('chk-test').checked;
+  const testHrs        = hasTest ? (parseFloat(document.getElementById('inp-test-hrs').value)||0) : 0;
+
+  // Collect unchecked tasks as roll-overs
+  const rollover = [];
+  if (S.plan) {
+    (S.plan.fixed_daily||[]).forEach((t,i)=>{ if (!S.checkedTasks[`fix_${i}`]) rollover.push(t.task); });
+    (S.plan.study_blocks||[]).forEach((b,i)=>{ if (!S.checkedTasks[`blk_${i}`]) rollover.push(b.task); });
+  }
+
+  btn.disabled = true;
+  showLoading('Building your plan…');
+
+  // Small timeout so the loading overlay renders before the sync work
+  setTimeout(() => {
+    try {
+      const plan = buildLocalPlan({ hoursAvailable, hoursStudied, mockScore, context, hasTest, testHrs, rollover, chosenDate });
+      S.plan = plan;
+      S.checkedTasks = {};
+      saveState();
+      hideLoading();
+      showToast('Plan ready! ✓');
+      // Reset date picker so next update defaults fresh to tomorrow
+      document.getElementById('inp-plan-date').value = '';
+      showScreen('dashboard');
+    } catch(e) {
+      hideLoading();
+      errEl.textContent = 'Could not build plan: ' + e.message;
+      errEl.style.display = 'block';
+      btn.disabled = false;
+    }
+  }, 300);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// NEW TOPICS
+// ═══════════════════════════════════════════════════════════════════
+
+function addNewTopic() {
+  const subj = document.getElementById('new-topic-subject').value;
+  const name = document.getElementById('new-topic-name').value.trim();
+  const hrs  = parseFloat(document.getElementById('new-topic-hrs').value) || 1;
+  if (!name) { showToast('Enter a topic name'); return; }
+  S.newTopics.push({ id: Date.now(), subject: subj, name, hrs });
+  saveState();
+  document.getElementById('new-topic-name').value = '';
+  renderTopicsList();
+  showToast('Topic added');
+}
+
+function removeTopic(id) {
+  S.newTopics = S.newTopics.filter(t => t.id !== id);
+  saveState();
+  renderTopicsList();
+}
+
+function renderTopicsList() {
+  const el = document.getElementById('topics-list');
+  if (!S.newTopics.length) {
+    el.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:6px 0;">No pending new topics.</p>';
+    return;
+  }
+  el.innerHTML = S.newTopics.map(t => {
+    const col = getColor(t.subject);
+    return `<div class="topic-item">
+      <div>
+        <span class="topic-subj-tag" style="background:${col}18;color:${col};">${t.subject}</span>
+        <span>${t.name}</span>
+        <span style="color:var(--muted);font-size:12px;margin-left:6px;">${t.hrs}hr</span>
+      </div>
+      <button class="topic-remove" onclick="removeTopic(${t.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PROGRESS
+// ═══════════════════════════════════════════════════════════════════
+
+function renderProgress() {
+  const pr = S.progress;
+  const totalClasses = Object.values(SUBJ).reduce((a,s)=>a+s.classes.length,0) + GK_EXTRA.length + GK_REGULAR.length;
+  const doneClasses  = pr.english.classes + pr.lr.classes + pr.legal.classes + pr.quants.classes + pr.gk.extra + pr.gk.regular;
+  const overallPct   = totalClasses > 0 ? Math.round((doneClasses/totalClasses)*100) : 0;
+
+  document.getElementById('overall-bar-wrap').innerHTML = `
+    <div class="overall-wrap">
+      <div class="overall-top"><span class="overall-label">Overall Progress</span><span class="overall-pct">${overallPct}%</span></div>
+      <div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:${overallPct}%;background:linear-gradient(90deg,var(--en),var(--gk));"></div></div>
+      <p style="font-size:12px;color:var(--muted);margin-top:7px;">${doneClasses} / ${totalClasses} classes done</p>
+    </div>`;
+
+  const cards = document.getElementById('progress-cards');
+  cards.innerHTML = '';
+  // Syllabus will re-render after cards are built
+  setTimeout(() => { if (typeof renderSyllabus==='function') renderSyllabus(false); }, 0);
+
+  // Per-subject
+  const defs = [
+    { key:'english', total: SUBJ.english.classes.length, books: SUBJ.english.books },
+    { key:'lr',      total: SUBJ.lr.classes.length,      books: SUBJ.lr.books },
+    { key:'legal',   total: SUBJ.legal.classes.length,   books: SUBJ.legal.books },
+    { key:'quants',  total: SUBJ.quants.classes.length,  books: SUBJ.quants.books },
+  ];
+  defs.forEach(({key, total, books}) => {
+    const s = SUBJ[key];
+    const done = pr[key].classes;
+    const pct  = total > 0 ? Math.round((done/total)*100) : 0;
+    const booksHTML = books.map((b,i) => {
+      const bd = pr[key].books[i] || 0;
+      return `<button class="btn-sm" onclick="incBook('${key}',${i},${b.a})"
+        style="background:${s.color}15;color:${s.color};border:1px solid ${s.color}40;">
+        ${b.n}: ${bd}/${b.a}</button>`;
+    }).join('');
+    cards.innerHTML += `
+      <div class="prog-card">
+        <div class="prog-card-header">
+          <span class="prog-card-title" style="color:${s.color};">${s.label}</span>
+          <span class="prog-card-stat">${done}/${total} classes · ${pct}%</span>
+        </div>
+        <div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:${pct}%;background:${s.color};"></div></div>
+        <div class="prog-btns">
+          <button class="btn-sm" onclick="incClass('${key}',${total})" style="background:${s.color};color:#fff;">+1 Class</button>
+          <button class="btn-sm" onclick="decClass('${key}')" style="background:var(--bg);color:var(--ink2);border:1px solid var(--border);">Undo</button>
+          ${booksHTML}
+        </div>
+      </div>`;
+  });
+
+  // GK card
+  const gk = pr.gk;
+  const magTotal = calcTotalMagazinesDue();
+  const wtTotal  = calcTotalWeeklyTestsDue();
+  const wtBehind = wtTotal - gk.weeklyTests;
+  const magParts    = gk.magazineParts || [];
+  const magDoneCount = magParts.filter(m => m.done_parts >= m.total_parts).length;
+  const magBehind   = magTotal - magDoneCount;
+  const gkTotal = GK_EXTRA.length + GK_REGULAR.length;
+  const gkDone  = gk.extra + gk.regular;
+  const gkPct   = Math.round((gkDone/gkTotal)*100);
+  cards.innerHTML += `
+    <div class="prog-card">
+      <div class="prog-card-header">
+        <span class="prog-card-title" style="color:var(--gk);">GK & Current Affairs</span>
+        <span class="prog-card-stat">${gkDone}/${gkTotal} classes · ${gkPct}% · 📰 ${magBehind > 0 ? magBehind + " mag" + (magBehind>1?"s":"") + " unread" : "Mags ✓"} · 📝 ${wtBehind > 0 ? wtBehind + " test" + (wtBehind>1?"s":"") + " pending" : "Tests ✓"}</span>
+      </div>
+      <div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:${gkPct}%;background:var(--gk);"></div></div>
+      <div class="prog-btns">
+        <button class="btn-sm" onclick="incGk('extra',${GK_EXTRA.length})" style="background:var(--gk);color:#fff;">+1 Extra (2hr)</button>
+        <button class="btn-sm" onclick="incGk('regular',${GK_REGULAR.length})" style="background:var(--gk);color:#fff;">+1 Regular (1hr)</button>
+        <button class="btn-sm" onclick="incGk('extra',${GK_EXTRA.length},-1)" style="background:var(--bg);color:var(--ink2);border:1px solid var(--border);">Undo Extra</button>
+        <button class="btn-sm" onclick="incGk('regular',${GK_REGULAR.length},-1)" style="background:var(--bg);color:var(--ink2);border:1px solid var(--border);">Undo Regular</button>
+        <button class="btn-sm" onclick="showMagazineProgress()" style="background:#8B5CF615;color:var(--gk);border:1px solid #8B5CF640;">📰 Magazines: ${magDoneCount}/${magTotal} done</button>
+        <button class="btn-sm" onclick="showMagazineSetup()" style="background:#8B5CF610;color:var(--gk);border:1px solid #8B5CF630;font-size:10px;">⚙ Set arrival date</button>
+        <button class="btn-sm" onclick="incGk('weeklyTests', calcTotalWeeklyTestsDue())" style="background:#8B5CF615;color:var(--gk);border:1px solid #8B5CF640;">Weekly Tests: ${gk.weeklyTests}/${wtTotal} done</button>
+        <button class="btn-sm" onclick="showWeeklyTestSetup()" style="background:#8B5CF610;color:var(--gk);border:1px solid #8B5CF630;font-size:10px;">⚙ Set test schedule</button>
+      </div>
+    </div>`;
+}
+
+function incClass(key, max) {
+  S.progress[key].classes = Math.min(S.progress[key].classes + 1, max);
+  saveState(); renderProgress();
+}
+function decClass(key) {
+  S.progress[key].classes = Math.max(S.progress[key].classes - 1, 0);
+  saveState(); renderProgress();
+}
+function incBook(key, i, max) {
+  S.progress[key].books[i] = Math.min((S.progress[key].books[i]||0)+1, max);
+  saveState(); renderProgress();
+}
+function incGk(field, max, delta=1) {
+  S.progress.gk[field] = Math.min(Math.max((S.progress.gk[field]||0)+delta, 0), max);
+  saveState(); renderProgress();
+}
+function resetProgress() {
+  if (!confirm('Reset ALL progress? This cannot be undone.')) return;
+  S.progress = defaultState().progress;
+  saveState(); renderProgress(); showToast('Progress reset');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TOAST / LOADING
+// ═══════════════════════════════════════════════════════════════════
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function showLoading(msg='Loading…') {
+  document.getElementById('loading-msg').textContent = msg;
+  document.getElementById('loading-overlay').classList.add('show');
+}
+function hideLoading() {
+  document.getElementById('loading-overlay').classList.remove('show');
+  document.getElementById('btn-generate').disabled = false;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// STORAGE — hardened fallback so GitHub Pages / private mode never crashes
+// ═══════════════════════════════════════════════════════════════════
+const _memStore = {};
+const storage = {
+  get(k)    { try { return localStorage.getItem(k); }    catch(e) { return _memStore[k] || null; } },
+  set(k, v) { try { localStorage.setItem(k, v); }        catch(e) { _memStore[k] = v; } },
+};
+
+function loadState() {
+  try {
+    const raw = storage.get('lawprep_v3');
+    if (raw) S = JSON.parse(raw);
+  } catch(e) { S = defaultState(); }
+  migrateProgressState();
+}
+function saveState() {
+  try { storage.set('lawprep_v3', JSON.stringify(S)); } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INIT — wrapped in DOMContentLoaded so elements always exist
+// ═══════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function() {
+  loadState();
+  renderDashboard();
+  renderTopicsList();
+
+  // Safe event listeners — elements guaranteed to exist here
+  const magDate  = document.getElementById('mag-start-date');
+  const magCount = document.getElementById('mag-start-count');
+  const wtDate   = document.getElementById('wt-start-date');
+  const wtCount  = document.getElementById('wt-start-count');
+  if (magDate)  magDate.addEventListener('input', updateMagPreview);
+  if (magCount) magCount.addEventListener('input', updateMagPreview);
+  if (wtDate)   wtDate.addEventListener('input', updateWtPreview);
+  if (wtCount)  wtCount.addEventListener('input', updateWtPreview);
+});
+
+// ── MAGAZINE SETUP ─────────────────────────────────────────────────
+function showMagazineSetup() {
+  const modal = document.getElementById('mag-modal');
+  modal.style.display = 'flex';
+  // Pre-fill with saved values
+  if (S.magazineStartDate) {
+    document.getElementById('mag-start-date').value = S.magazineStartDate;
+  } else {
+    // Default to today
+    const today = new Date();
+    document.getElementById('mag-start-date').value = today.toISOString().slice(0,10);
+  }
+  document.getElementById('mag-start-count').value = S.magazineStartCount || 11;
+  updateMagPreview();
+}
+
+function updateMagPreview() {
+  const dateVal  = document.getElementById('mag-start-date').value;
+  const countVal = parseInt(document.getElementById('mag-start-count').value) || 11;
+  if (!dateVal) { document.getElementById('mag-preview').textContent = ''; return; }
+  const sd = new Date(dateVal); sd.setHours(0,0,0,0);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = Math.floor((today - sd) / 86400000);
+  const arrivals = Math.max(0, Math.floor(days / 15));
+  const total = countVal + arrivals;
+  const nextIn = 15 - (days % 15);
+  document.getElementById('mag-preview').innerHTML =
+    `<strong>${total} magazines due today</strong> (${countVal} piled up + ${arrivals} arrived since then).<br>Next one arrives in <strong>${nextIn} day${nextIn===1?'':'s'}</strong>.`;
+}
+
+function saveMagazineSetup() {
+  const dateVal  = document.getElementById('mag-start-date').value;
+  const countVal = parseInt(document.getElementById('mag-start-count').value) || 11;
+  if (!dateVal) { showToast('Pick a date first'); return; }
+  S.magazineStartDate  = dateVal;
+  S.magazineStartCount = countVal;
+  saveState();
+  document.getElementById('mag-modal').style.display = 'none';
+  renderProgress();
+  showToast('Magazine schedule saved ✓');
+}
+
+// Live preview as user changes inputs
+// ── WEEKLY TEST SETUP ──────────────────────────────────────────────
+function showWeeklyTestSetup() {
+  const modal = document.getElementById('wt-modal');
+  modal.style.display = 'flex';
+  if (S.weeklyTestStartDate) {
+    document.getElementById('wt-start-date').value = S.weeklyTestStartDate;
+  } else {
+    document.getElementById('wt-start-date').value = new Date().toISOString().slice(0,10);
+  }
+  document.getElementById('wt-start-count').value = S.weeklyTestStartCount || 13;
+  updateWtPreview();
+}
+
+function updateWtPreview() {
+  const dateVal  = document.getElementById('wt-start-date').value;
+  const countVal = parseInt(document.getElementById('wt-start-count').value) || 13;
+  if (!dateVal) { document.getElementById('wt-preview').textContent = ''; return; }
+  const sd = new Date(dateVal); sd.setHours(0,0,0,0);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = Math.floor((today - sd) / 86400000);
+  const arrivals = Math.max(0, Math.floor(days / 7));
+  const total = countVal + arrivals;
+  const nextIn = 7 - (days % 7);
+  document.getElementById('wt-preview').innerHTML =
+    `<strong>${total} tests due today</strong> (${countVal} pending + ${arrivals} added since then).<br>Next one arrives in <strong>${nextIn} day${nextIn===1?'':'s'}</strong>.`;
+}
+
+function saveWeeklyTestSetup() {
+  const dateVal  = document.getElementById('wt-start-date').value;
+  const countVal = parseInt(document.getElementById('wt-start-count').value) || 13;
+  if (!dateVal) { showToast('Pick a date first'); return; }
+  S.weeklyTestStartDate  = dateVal;
+  S.weeklyTestStartCount = countVal;
+  saveState();
+  document.getElementById('wt-modal').style.display = 'none';
+  renderProgress();
+  showToast('Test schedule saved ✓');
+}
+
+
+// ═══════════════════════════════════════════════════════════════════
+// MAGAZINE PARTS TRACKER
+// ═══════════════════════════════════════════════════════════════════
+
+function showMagazineProgress() {
+  document.getElementById('magparts-modal').style.display = 'flex';
+  renderMagPartsList();
+}
+
+function renderMagPartsList() {
+  const magDue = calcTotalMagazinesDue();
+  const parts  = S.progress.gk.magazineParts || [];
+  while (parts.length < magDue) parts.push({ total_parts: 5, done_parts: 0 });
+  S.progress.gk.magazineParts = parts;
+  saveState();
+
+  let html = '';
+  for (let i = 0; i < magDue; i++) {
+    const mag      = parts[i];
+    const isBacklog = i < (S.magazineStartCount || 5);
+    const magLabel = isBacklog ? `Backlog Mag #${i+1}` : `New Mag #${i - (S.magazineStartCount||5) + 1}`;
+    const allDone  = mag.done_parts >= mag.total_parts;
+    html += `
+    <div style="background:${allDone?'#F0FDF4':'#F7F7FB'};border-radius:10px;padding:12px 14px;margin-bottom:10px;border:1.5px solid ${allDone?'#BBF7D0':'#E4E4EF'};">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-weight:700;font-size:13px;color:#3A3A52;">${magLabel}${allDone?' ✓':''}</span>
+        <span style="font-size:11px;color:#7C7C99;">${mag.done_parts}/${mag.total_parts} parts done</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;">
+        ${Array.from({length: mag.total_parts}, (_,p) => `<button class="mag-part-btn${p < mag.done_parts?' done':''}" onclick="toggleMagPart(${i},${p})">Part ${p+1}</button>`).join('')}
+        <button onclick="addMagPart(${i})" style="padding:5px 8px;border-radius:8px;border:1.5px dashed #CBD5E1;background:transparent;color:#94A3B8;font-size:11px;cursor:pointer;">+ part</button>
+        ${mag.total_parts > 1 ? `<button onclick="removeMagPart(${i})" style="padding:5px 8px;border-radius:8px;border:1.5px dashed #FCA5A5;background:transparent;color:#F87171;font-size:11px;cursor:pointer;">− part</button>` : ''}
+      </div>
+    </div>`;
+  }
+  document.getElementById('magparts-list').innerHTML = html || '<p style="color:#94A3B8;font-size:13px;text-align:center;padding:20px 0;">No magazines set up yet.<br>Set arrival date first in Progress tab.</p>';
+}
+
+function toggleMagPart(magIdx, partIdx) {
+  const mag = S.progress.gk.magazineParts[magIdx];
+  if (partIdx < mag.done_parts) {
+    mag.done_parts = partIdx;
+  } else {
+    mag.done_parts = partIdx + 1;
+  }
+  saveState();
+  renderMagPartsList();
+  renderProgress();
+}
+
+function addMagPart(magIdx) {
+  S.progress.gk.magazineParts[magIdx].total_parts++;
+  saveState(); renderMagPartsList();
+}
+
+function removeMagPart(magIdx) {
+  const mag = S.progress.gk.magazineParts[magIdx];
+  if (mag.total_parts <= 1) return;
+  mag.total_parts--;
+  mag.done_parts = Math.min(mag.done_parts, mag.total_parts);
+  saveState(); renderMagPartsList();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ADD MORE TODAY
+// ═══════════════════════════════════════════════════════════════════
+
+function showAddMorePanel() {
+  document.getElementById('addmore-modal').style.display = 'flex';
+}
+
+function toggleSubjFilter(btn) {
+  btn.classList.toggle('active');
+}
+
+function generateExtraBlocks() {
+  const hours    = parseFloat(document.getElementById('addmore-hours').value) || 2;
+  let budget     = Math.round(hours * 60);
+  const selected = [...document.querySelectorAll('.subj-toggle.active')].map(b => b.dataset.subj);
+  if (selected.length === 0) { showToast('Pick at least one subject'); return; }
+
+  // Everything already scheduled today (main plan + previously added extras)
+  const existingTasks = new Set([
+    ...(S.plan?.study_blocks||[]).map(b => b.task),
+    ...(S.plan?.extra_blocks||[]).map(b => b.task),
+  ]);
+
+  const extra = [];
+
+  // Helper: build a magazine block for the next pending part
+  function nextMagBlock() {
+    const parts  = S.progress.gk.magazineParts || [];
+    const magDue = calcTotalMagazinesDue();
+    while (parts.length < magDue) parts.push({ total_parts:5, done_parts:0 });
+    S.progress.gk.magazineParts = parts;
+    for (let i = 0; i < parts.length; i++) {
+      const mag = parts[i];
+      if (mag.done_parts >= mag.total_parts) continue;
+      const pn  = mag.done_parts + 1;
+      const ts  = (mag.done_parts * 2) + 1;
+      const te  = Math.min(ts + 1, 12);
+      const ml  = i < (S.magazineStartCount||5) ? `Backlog Mag #${i+1}` : `New Mag #${i-(S.magazineStartCount||5)+1}`;
+      const t   = `${ml} — Part ${pn}/${mag.total_parts}: Topics ${ts}–${te} + One-liners`;
+      if (!existingTasks.has(t)) return { subject:'GK & Current Affairs', type:'magazine', task:t,
+        duration_min:45, priority:'high', notes:'2 topics done well beats 5 skimmed. One-liners: read, cover, recall.' };
+    }
+    return null;
+  }
+
+  // ── MAGAZINE (if explicitly selected) ────────────────────────────
+  if (selected.includes('magazine') && budget >= 45) {
+    const b = nextMagBlock();
+    if (b) { extra.push(b); existingTasks.add(b.task); budget -= 45; }
+  }
+
+  // ── GK & CURRENT AFFAIRS ─────────────────────────────────────────
+  // Priority: Extra class (2hr) → Regular class (1hr) → Magazine → Revision
+  if (selected.includes('gk')) {
+    const nextExtra = getNextClass('gk_extra');
+    const extraTask = nextExtra ? `GK Extra Class: ${nextExtra}` : null;
+    if (extraTask && !existingTasks.has(extraTask) && budget >= 120) {
+      extra.push({ subject:'GK & Current Affairs', type:'gk_class', task:extraTask,
+        duration_min:120, priority:'high', notes:'Watch full class, pause-and-note every key fact. Add to revision sheet.' });
+      existingTasks.add(extraTask); budget -= 120;
+    }
+
+    const nextReg = getNextClass('gk_regular');
+    const regTask = nextReg ? `GK Regular Class: ${nextReg}` : null;
+    if (regTask && !existingTasks.has(regTask) && budget >= 60) {
+      extra.push({ subject:'GK & Current Affairs', type:'gk_class', task:regTask,
+        duration_min:60, priority:'medium', notes:'Crisp 1-hr class. Mark all facts to revise in weekly test.' });
+      existingTasks.add(regTask); budget -= 60;
+    }
+
+    // Magazine inside GK only if magazine toggle wasn't already selected
+    if (!selected.includes('magazine') && budget >= 45) {
+      const b = nextMagBlock();
+      if (b) { extra.push(b); existingTasks.add(b.task); budget -= 45; }
+    }
+
+    // GK revision as last resort
+    const gkRevTask = "GK Revision — revisit today's newspaper notes + 20 extra MCQs";
+    if (!existingTasks.has(gkRevTask) && budget >= 30) {
+      const dur = Math.min(budget, 40);
+      extra.push({ subject:'GK & Current Affairs', type:'revision', task:gkRevTask,
+        duration_min:dur, priority:'low', notes:'From memory, list 10 things you read today. Then do 20 MCQs.' });
+      existingTasks.add(gkRevTask); budget -= dur;
+    }
+  }
+
+  // ── CORE SUBJECTS: English, LR, Legal, Quants ────────────────────
+  // Priority per subject: new class → next book assignment → book assignment from next book →
+  //                       second book assignment → revision from studied topics
+  const coreKeys = ['legal','english','lr','quants'].filter(k => selected.includes(k));
+  const sorted   = [...coreKeys].sort((a,b) => subjectUrgency(b) - subjectUrgency(a));
+
+  for (const key of sorted) {
+    if (budget < 20) break;
+    const label     = SUBJ[key].label;
+    const nextClass = getNextClass(key);
+    const classTask = nextClass ? `${label}: ${nextClass}` : null;
+
+    // 1. New class — only if this specific class isn't already in today's plan
+    if (classTask && !existingTasks.has(classTask) && budget >= 60) {
+      extra.push({ subject:label, type:'new_class', task:classTask,
+        duration_min:60, priority:'medium',
+        notes:`Watch fully. Notes + examples + 1 summary line at the end.` });
+      existingTasks.add(classTask); budget -= 60;
+      continue; // one block per subject per call
+    }
+
+    // 2. Book practice — find the next assignment not already scheduled
+    let bookAdded = false;
+    const books = SUBJ[key].books || [];
+    for (let bi = 0; bi < books.length && !bookAdded; bi++) {
+      const done  = S.progress[key].books[bi] || 0;
+      const total = books[bi].a;
+      if (done < total) {
+        const assn     = done + 1;
+        const bookTask = `${label} — ${books[bi].n}, Assignment ${assn} of ${total}`;
+        if (!existingTasks.has(bookTask) && budget >= 40) {
+          const dur = Math.min(budget, 45);
+          extra.push({ subject:label, type:'book_practice', task:bookTask,
+            duration_min:dur, priority:'medium', notes:'Timed practice. Mark every wrong answer for tomorrow.' });
+          existingTasks.add(bookTask); budget -= dur;
+          bookAdded = true;
+        }
+        break; // only try the first incomplete book
+      }
+    }
+    if (bookAdded) continue;
+
+    // 3. Revision from actually studied classes
+    if (budget >= 20) {
+      const usedTopics = new Set(extra.map(b => b._revTopic).filter(Boolean));
+      const topic = getStudiedRevisionTopic(key, usedTopics);
+      if (topic) {
+        const revTask = `Quick Revision: ${topic}`;
+        if (!existingTasks.has(revTask)) {
+          const dur = Math.min(budget, 25);
+          extra.push({ subject:label, type:'revision', task:revTask,
+            _revTopic:topic, duration_min:dur, priority:'low',
+            notes:'Recall first, check after. No passive re-reading.' });
+          existingTasks.add(revTask); budget -= dur;
+        }
+      }
+      // If nothing studied yet in this subject, just skip — don't add garbage
+    }
+  }
+
+  if (extra.length === 0) { showToast('No tasks fit the selected subjects and hours'); return; }
+
+  if (!S.plan.extra_blocks) S.plan.extra_blocks = [];
+  const startIdx = S.plan.extra_blocks.length;
+  S.plan.extra_blocks.push(...extra);
+  saveState();
+
+  document.getElementById('addmore-modal').style.display = 'none';
+  document.getElementById('add-more-wrap').style.display = 'block';
+  const container = document.getElementById('extra-blocks-wrap');
+  extra.forEach((b, i) => {
+    container.innerHTML += taskBlockHTML(`ext_${startIdx+i}`, b.task, b.subject, b.type, b.duration_min, b.notes, b.priority==='high');
+  });
+  renderSwapButtons();
+  restoreChecks();
+  showToast(`Added ${extra.length} task${extra.length>1?'s':''} for today ✓`);
+}
+
+function renderSwapButtons() {
+  const container = document.getElementById('extra-blocks-wrap');
+  if (!container) return;
+  container.querySelectorAll('.swap-btn').forEach(b => b.remove());
+  const cards = container.querySelectorAll('.task-block');
+  cards.forEach((card, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'swap-btn';
+    btn.innerHTML = '🔄 Replace';
+    btn.style.cssText = 'margin-top:8px;padding:5px 12px;border-radius:8px;border:1.5px solid #CBD5E1;background:#F7F7FB;color:#64748B;font-size:11px;font-weight:600;cursor:pointer;touch-action:manipulation;display:block;';
+    btn.onclick = () => swapExtraBlock(i);
+    card.appendChild(btn);
+  });
+}
+
+function swapExtraBlock(idx) {
+  if (!S.plan || !S.plan.extra_blocks) return;
+  const block = S.plan.extra_blocks[idx];
+  if (!block) return;
+
+  // Everything currently scheduled except this block
+  const excluded = new Set([
+    ...S.plan.extra_blocks.filter((_,i) => i !== idx).map(b => b.task),
+    ...(S.plan.study_blocks||[]).map(b => b.task),
+  ]);
+
+  const key = {
+    'English':'english','Logical Reasoning':'lr',
+    'Legal Reasoning':'legal','Quantitative Aptitude':'quants',
+    'GK & Current Affairs':'gk'
+  }[block.subject] || 'gk';
+
+  let replacement = null;
+
+  // Helper: next magazine block not in excluded
+  function nextMagSwap() {
+    const parts  = S.progress.gk.magazineParts || [];
+    const magDue = calcTotalMagazinesDue();
+    while (parts.length < magDue) parts.push({ total_parts:5, done_parts:0 });
+    for (let i = 0; i < parts.length; i++) {
+      const mag = parts[i];
+      if (mag.done_parts >= mag.total_parts) continue;
+      const pn = mag.done_parts + 1;
+      const ts = (mag.done_parts * 2) + 1;
+      const te = Math.min(ts + 1, 12);
+      const ml = i < (S.magazineStartCount||5) ? `Backlog Mag #${i+1}` : `New Mag #${i-(S.magazineStartCount||5)+1}`;
+      const t  = `${ml} — Part ${pn}/${mag.total_parts}: Topics ${ts}–${te} + One-liners`;
+      if (!excluded.has(t) && t !== block.task) return { subject:'GK & Current Affairs', type:'magazine', task:t,
+        duration_min:45, priority:'high', notes:'2 topics done well beats 5 skimmed.' };
+    }
+    return null;
+  }
+
+  // Helper: next book assignment not in excluded
+  function nextBookSwap(k, subj) {
+    const books = SUBJ[k]?.books || [];
+    for (let bi = 0; bi < books.length; bi++) {
+      const done  = S.progress[k].books[bi] || 0;
+      const total = books[bi].a;
+      if (done < total) {
+        const t = `${subj} — ${books[bi].n}, Assignment ${done+1} of ${total}`;
+        if (!excluded.has(t) && t !== block.task) return { subject:subj, type:'book_practice', task:t,
+          duration_min:45, priority:'medium', notes:'Timed practice. Mark every wrong answer.' };
+        break;
+      }
+    }
+    return null;
+  }
+
+  // Helper: next class not in excluded
+  function nextClassSwap(k, subj) {
+    const done = S.progress[k]?.classes || 0;
+    const cls  = (SUBJ[k]?.classes || [])[done];
+    if (!cls) return null;
+    const t = `${subj}: ${cls}`;
+    if (!excluded.has(t) && t !== block.task) return { subject:subj, type:'new_class', task:t,
+      duration_min:60, priority:'medium', notes:'Watch fully. Notes + 1 summary line at the end.' };
+    return null;
+  }
+
+  // Helper: revision topic not in excluded
+  function nextRevSwap(k, subj, dur) {
+    const usedTopics = new Set(block._revTopic ? [block._revTopic] : []);
+    const topic = getStudiedRevisionTopic(k, usedTopics);
+    if (!topic) return null;
+    const t = `Quick Revision: ${topic}`;
+    if (!excluded.has(t) && t !== block.task) return { subject:subj, type:'revision', task:t,
+      _revTopic:topic, duration_min:dur||25, priority:'low', notes:'Recall first, check after.' };
+    return null;
+  }
+
+  if (key === 'gk') {
+    // GK swap priority: Extra class → Regular class → Magazine → Revision
+    const nextExtra = getNextClass('gk_extra');
+    const extraTask = nextExtra ? `GK Extra Class: ${nextExtra}` : null;
+    if (extraTask && !excluded.has(extraTask) && extraTask !== block.task) {
+      replacement = { subject:'GK & Current Affairs', type:'gk_class', task:extraTask,
+        duration_min:120, priority:'high', notes:'Watch full class, pause-and-note every key fact.' };
+    }
+    if (!replacement) {
+      const nextReg = getNextClass('gk_regular');
+      const regTask = nextReg ? `GK Regular Class: ${nextReg}` : null;
+      if (regTask && !excluded.has(regTask) && regTask !== block.task) {
+        replacement = { subject:'GK & Current Affairs', type:'gk_class', task:regTask,
+          duration_min:60, priority:'medium', notes:'Crisp 1-hr class. Mark facts for weekly test.' };
+      }
+    }
+    if (!replacement) replacement = nextMagSwap();
+    if (!replacement) {
+      const gkRevTask = "GK Revision — revisit today's newspaper notes + 20 extra MCQs";
+      if (!excluded.has(gkRevTask) && gkRevTask !== block.task)
+        replacement = { subject:'GK & Current Affairs', type:'revision', task:gkRevTask,
+          duration_min:40, priority:'low', notes:'From memory, list 10 things you read today. Then do 20 MCQs.' };
+    }
+
+  } else if (block.type === 'magazine') {
+    // Magazine swap: try next part → if same mag is only option, suggest GK class instead
+    replacement = nextMagSwap();
+    if (!replacement) {
+      const nextExtra = getNextClass('gk_extra');
+      const extraTask = nextExtra ? `GK Extra Class: ${nextExtra}` : null;
+      if (extraTask && !excluded.has(extraTask))
+        replacement = { subject:'GK & Current Affairs', type:'gk_class', task:extraTask,
+          duration_min:120, priority:'high', notes:'Watch full class, pause-and-note every key fact.' };
+    }
+
+  } else {
+    // Core subjects: try class → book → revision, in order, across all fallbacks
+    replacement = nextClassSwap(key, block.subject);
+    if (!replacement) replacement = nextBookSwap(key, block.subject);
+    if (!replacement) replacement = nextRevSwap(key, block.subject, block.duration_min);
+    // Last resort: if still nothing, try other urgency-sorted subjects
+    if (!replacement) {
+      const others = ['legal','english','lr','quants']
+        .filter(k => k !== key)
+        .sort((a,b) => subjectUrgency(b) - subjectUrgency(a));
+      for (const k of others) {
+        const lbl = SUBJ[k].label;
+        replacement = nextClassSwap(k, lbl) || nextBookSwap(k, lbl) || nextRevSwap(k, lbl, block.duration_min);
+        if (replacement) break;
+      }
+    }
+  }
+
+  if (!replacement) {
+    showToast('Nothing left to swap in — everything is already scheduled!');
+    return;
+  }
+
+  S.plan.extra_blocks[idx] = replacement;
+  delete S.checkedTasks[`ext_${idx}`];
+  saveState();
+
+  const container = document.getElementById('extra-blocks-wrap');
+  const cards     = container.querySelectorAll('.task-block');
+  if (cards[idx]) {
+    cards[idx].outerHTML = taskBlockHTML(`ext_${idx}`, replacement.task, replacement.subject,
+      replacement.type, replacement.duration_min, replacement.notes, replacement.priority==='high');
+  } else {
+    container.innerHTML = '';
+    S.plan.extra_blocks.forEach((b,i) => {
+      container.innerHTML += taskBlockHTML(`ext_${i}`, b.task, b.subject, b.type, b.duration_min, b.notes, b.priority==='high');
+    });
+  }
+  renderSwapButtons();
+  restoreChecks();
+  showToast('Task replaced ✓');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SYLLABUS
+// ═══════════════════════════════════════════════════════════════════
+
+// Which subject is currently expanded in the syllabus panel
+let _syllabusOpen = null;
+
+function renderSyllabus(resetOpen) {
+  if (resetOpen === true) _syllabusOpen = null;
+
+  const btnWrap   = document.getElementById('syllabus-subject-btns');
+  const panel     = document.getElementById('syllabus-panel');
+  if (!btnWrap || !panel) return;
+
+  const subjects = [
+    { key:'english', label:'English',              color:'#4F6EF7' },
+    { key:'lr',      label:'Logical Reasoning',    color:'#F97316' },
+    { key:'legal',   label:'Legal Reasoning',      color:'#10B981' },
+    { key:'quants',  label:'Quantitative Aptitude',color:'#EF4444' },
+    { key:'gk',      label:'GK & Current Affairs', color:'#8B5CF6' },
+  ];
+
+  // Subject selector buttons
+  btnWrap.innerHTML = subjects.map(s => `
+    <button type="button"
+      onclick="openSyllabusSubject('${s.key}')"
+      style="padding:8px 14px;border-radius:20px;border:2px solid ${s.color};
+             background:${_syllabusOpen===s.key ? s.color : 'transparent'};
+             color:${_syllabusOpen===s.key ? '#fff' : s.color};
+             font-family:'Inter',sans-serif;font-size:12px;font-weight:700;
+             cursor:pointer;touch-action:manipulation;transition:all .15s;">
+      ${s.label}
+    </button>`).join('');
+
+  if (!_syllabusOpen) { panel.innerHTML = ''; return; }
+
+  // Render the open subject
+  const subj = subjects.find(s => s.key === _syllabusOpen);
+  if (!subj) return;
+  panel.innerHTML = buildSyllabusPanel(subj.key, subj.label, subj.color);
+}
+
+function openSyllabusSubject(key) {
+  _syllabusOpen = (_syllabusOpen === key) ? null : key; // toggle
+  renderSyllabus(false);
+  if (_syllabusOpen) {
+    setTimeout(() => {
+      document.getElementById('syllabus-panel')?.scrollIntoView({ behavior:'smooth', block:'start' });
+    }, 100);
+  }
+}
+
+function buildSyllabusPanel(key, label, color) {
+  const pr = S.progress;
+
+  if (key === 'gk') {
+    return buildGkSyllabusPanel(color);
+  }
+
+  const classes   = SUBJ[key].classes;
+  const doneSet   = getClassDoneSet(key);
+  const doneCls   = doneSet.size;
+
+  // New topics for this subject
+  const subjLabel = SUBJ[key].label;
+  const pendingTopics = S.newTopics.filter(t => t.subject === subjLabel);
+
+  let html = `<div style="background:#fff;border-radius:12px;border:1.5px solid ${color}30;overflow:hidden;margin-bottom:8px;">`;
+
+  // Header
+  html += `<div style="background:${color}10;padding:12px 16px;border-bottom:1px solid ${color}20;display:flex;align-items:center;justify-content:space-between;">
+    <span style="font-weight:800;font-size:14px;color:${color};">${label} — Classes</span>
+    <span style="font-size:12px;color:#7C7C99;">${doneCls}/${classes.length} done</span>
+  </div>`;
+
+  // Classes list — each class independently ticked from the Set
+  classes.forEach((cls, i) => {
+    const done = doneSet.has(i);
+    html += syllabusRow(
+      done, cls, color,
+      `syllabusToggle('${key}', ${i})`
+    );
+  });
+
+  // New topics for this subject (shown at the bottom, greyed differently)
+  if (pendingTopics.length > 0) {
+    html += `<div style="padding:8px 16px;background:#FFFBEB;border-top:1px solid #FDE68A;font-size:11px;font-weight:700;color:#92400E;letter-spacing:.5px;">➕ ADDED NEW TOPICS</div>`;
+    pendingTopics.forEach(t => {
+      html += syllabusRow(
+        false, `${t.name} (~${t.hrs}hr)`, '#F59E0B',
+        `syllabusCheckNewTopic(${t.id})`
+      );
+    });
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+function toggleGkSection(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function buildGkSyllabusPanel(color) {
+  const pr      = S.progress;
+
+  // Declare Sets BEFORE use in template literals
+  const extraDoneSet   = getGkDoneSet('extra');
+  const regularDoneSet = getGkDoneSet('regular');
+  const gkNewTopics    = S.newTopics.filter(t => t.subject === 'GK & Current Affairs');
+
+  let html = '';
+
+  // ── GK Extra classes — collapsible to avoid rendering 100+ rows at once ──
+  html += `<div style="background:#fff;border-radius:12px;border:1.5px solid ${color}30;overflow:hidden;margin-bottom:8px;">
+    <div onclick="toggleGkSection('gk-extra-list')" style="background:${color}10;padding:12px 16px;border-bottom:1px solid ${color}20;display:flex;align-items:center;justify-content:space-between;cursor:pointer;touch-action:manipulation;">
+      <span style="font-weight:800;font-size:14px;color:${color};">GK Extra Classes (2hr)</span>
+      <span style="font-size:12px;color:#7C7C99;">${extraDoneSet.size}/${GK_EXTRA.length} done · tap to expand</span>
+    </div>
+    <div id="gk-extra-list" style="display:none;">`;
+  GK_EXTRA.forEach((cls, i) => {
+    html += syllabusRow(extraDoneSet.has(i), cls, color, `syllabusToggleGk('extra', ${i})`);
+  });
+  html += `</div></div>`;
+
+  // ── GK Regular classes — collapsible ──
+  html += `<div style="background:#fff;border-radius:12px;border:1.5px solid ${color}30;overflow:hidden;margin-bottom:8px;">
+    <div onclick="toggleGkSection('gk-regular-list')" style="background:${color}10;padding:12px 16px;border-bottom:1px solid ${color}20;display:flex;align-items:center;justify-content:space-between;cursor:pointer;touch-action:manipulation;">
+      <span style="font-weight:800;font-size:14px;color:${color};">GK Regular Classes (1hr)</span>
+      <span style="font-size:12px;color:#7C7C99;">${regularDoneSet.size}/${GK_REGULAR.length} done · tap to expand</span>
+    </div>
+    <div id="gk-regular-list" style="display:none;">`;
+  GK_REGULAR.forEach((cls, i) => {
+    html += syllabusRow(regularDoneSet.has(i), cls, color, `syllabusToggleGk('regular', ${i})`);
+  });
+  html += `</div></div>`;
+
+  // ── New GK topics ──
+  if (gkNewTopics.length > 0) {
+    html += `<div style="background:#fff;border-radius:12px;border:1.5px solid #FDE68A;overflow:hidden;margin-bottom:8px;">
+      <div style="background:#FFFBEB;padding:12px 16px;border-bottom:1px solid #FDE68A;">
+        <span style="font-weight:800;font-size:14px;color:#92400E;">➕ Added New GK Topics</span>
+      </div>`;
+    gkNewTopics.forEach(t => {
+      html += syllabusRow(false, `${t.name} (~${t.hrs}hr)`, '#F59E0B',
+        `syllabusCheckNewTopic(${t.id})`);
+    });
+    html += `</div>`;
+  }
+
+  return html;
+}
+
+function syllabusRow(done, label, color, onclick) {
+  return `<div onclick="${onclick}" style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid #F1F5F9;cursor:pointer;background:${done?'#F0FDF4':'#fff'};touch-action:manipulation;"><div style="width:20px;height:20px;border-radius:6px;flex-shrink:0;border:2px solid ${done?color:'#CBD5E1'};background:${done?color:'transparent'};display:flex;align-items:center;justify-content:center;">${done?'<svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}</div><span style="font-size:13px;color:${done?'#6B7280':'#1E293B'};text-decoration:${done?'line-through':'none'};font-weight:${done?'400':'500'};flex:1;line-height:1.4;">${label}</span></div>`;
+}
+
+// ── Syllabus check/uncheck handlers ──────────────────────────────
+
+function syllabusToggle(key, idx) {
+  const wasDone = getClassDoneSet(key).has(idx);
+  toggleClassInSet(key, idx);
+  renderSyllabus(false);
+  showToast(wasDone ? 'Unmarked ✓' : 'Marked done ✓');
+}
+
+function syllabusToggleGk(type, idx) {
+  const wasDone = getGkDoneSet(type).has(idx);
+  toggleGkInSet(type, idx);
+  renderSyllabus(false);
+  showToast(wasDone ? 'Unmarked ✓' : 'Marked done ✓');
+}
+
+function syllabusCheckNewTopic(id) {
+  // Mark the new topic as done — remove from pending list
+  const topic = S.newTopics.find(t => t.id === id);
+  if (!topic) return;
+  if (!confirm(`Mark "${topic.name}" as completed and remove from pending topics?`)) return;
+  S.newTopics = S.newTopics.filter(t => t.id !== id);
+  saveState();
+  renderTopicsList();
+  renderSyllabus(false);
+  showToast('Topic marked done ✓');
+}
+
+</script>
+</body>
+</html>
